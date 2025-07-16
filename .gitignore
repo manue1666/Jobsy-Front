@@ -5,6 +5,8 @@ node_modules/
 
 # Expo
 .expo/
+.expo-shared/
+eas-build/
 dist/
 web-build/
 expo-env.d.ts
@@ -17,6 +19,20 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+*.keystore
+
+# iOS
+ios/build/
+ios/Pods/
+ios/Podfile.lock
+ios/.xcworkspace/
+*.xcuserstate
+*.xcuserdata
 
 # Metro
 .metro-health-check*
@@ -32,6 +48,24 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env
+.env.*
+.secrets/
 
 # typescript
 *.tsbuildinfo
+*.bundle
+*.map
+
+# Linux 
+*~
+
+# VSCode 
+.vscode/
+
+# Logs & Temp
+*.log
+logs/
+*.tmp
+tmp/
+.cache/
