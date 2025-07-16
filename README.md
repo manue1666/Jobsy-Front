@@ -7,9 +7,10 @@ Aplicación construida en React Native, con Expo.
 
 
 ## Setup
-npm install
-expo start
+	npm install
+	expo start
 
 ## Build
-eas build --platform android
-eas build --platform ios
+	eas build --platform android
+	eas build --platform ios
+	
