@@ -37,15 +37,15 @@ export default function RegistroScreen() {
   return (
     <ScreenContainer>
       {/* Header */}
-      <View className={`rounded-b-[50px] px-6 pt-16 pb-16 ${isDark ? 'bg-blue-700' : 'bg-blue-500'}`}>
-        <View className="items-center mb-9">
+      <View className={`rounded-b-[50px] px-9 pt-16 pb-16 ${isDark ? 'bg-blue-700' : 'bg-blue-500'}`}>
+        <View className="items-center mb-8">
           <AppLogo variant="light" size="medium" />
         </View>
         <Text className="text-white text-2xl font-bold text-center">Bienvenid@.</Text>
       </View>
 
       {/* Form */}
-      <View className="flex-1 px-6 -mt-8">
+      <View className="flex-1 px-6 -mt-9">
         <FormCard title="Regístrate">
           <FormInput
             label="Nombre"
