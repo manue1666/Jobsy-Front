@@ -1,114 +1,87 @@
-import { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  ImageBackground,
-  StatusBar,
-  SafeAreaView,
-  useColorScheme
-} from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
-import '@/global.css'
+import { useColorScheme } from 'react-native';
+
+// Import your custom components
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { FormCard } from '@/components/FormCard';
+import { AppLogo } from '@/components/AppLogo';
+import { FormInput } from '@/components/FormInput';
+import { PrimaryButton } from '@/components/PrimaryButton';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    setLoading(true);
     // TODO: Implement login logic
     console.log('Login pressed', { email, password });
-    // Navigate to main app after successful login
-    router.replace('/(tabs)');
+    
+    // Simulate API call
+    setTimeout(() => {
+      setLoading(false);
+      router.replace('/(tabs)');
+    }, 1000);
   };
 
+  const isFormValid = email.length > 0 && password.length > 0;
+
   return (
-    <SafeAreaView className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
-      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'}
-        backgroundColor={isDark ? '#111827' : '#ffffff'}/>
-      
-      {/* Background Image */}
-      <ImageBackground
-        source={{ uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop' }}
-        className="flex-1"
-        resizeMode="cover"
-      >
-        {/* Semi-transparent overlay */}
-        <View className={`flex-1 ${isDark ? 'bg-black/50' : 'bg-black/20'}`}>
-          
-          {/* Login Form Container */}
-          <View className="flex-1 justify-center px-6">
-            <View className={`${isDark ? 'bg-gray-800/95' : 'bg-white/95'} rounded-3xl p-8 shadow-lg`}>
-              
-              {/* Logo */}
-              <View className="items-center mb-8">
-
-                <View className="bg-blue-500 rounded-2xl p-3 mb-4">
-                  <View className="w-8 h-8 bg-white rounded-lg items-center justify-center">
-                    <Text className="text-blue-500 font-bold text-lg">J</Text>
-                  </View>
-                </View>
-				
-                <Text className="text-blue-500 text-2xl font-bold">Jobsy</Text>
-                <Text className="text-gray-600 text-sm">Profesionales a tu alcance</Text>
-              </View>
-
-              {/* Form Title */}
-              <Text className={`${isDark ? 'text-gray-100' : 'text-gray-800'} text-center text-xl font-bold mb-6`}>
-                Inicia sesión
-              </Text>
-
-              {/* Email Input */}
-              <View className="mb-4">
-                <Text className={`${isDark ? 'text-gray-400' : 'text-gray-700'} text-sm mb-2`}>Email</Text>
-                <TextInput
-                  className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} rounded-xl px-4 py-4 text-base ${isDark ? 'text-white' : 'text-black'}`}
-                  placeholder="Tu email"
-                  placeholderTextColor="#9CA3AF"
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-
-              {/* Password Input */}
-              <View className="mb-6">
-                <Text className={`${isDark ? 'text-gray-400' : 'text-gray-700'} text-sm mb-2`}>Password</Text>
-                <TextInput
-                  className={`${isDark ? 'bg-gray-700' : 'bg-gray-100'} rounded-xl px-4 py-4 text-base ${isDark ? 'text-white' : 'text-black'}`}
-                  placeholder="Tu contraseña"
-                  placeholderTextColor="#9CA3AF"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                />
-              </View>
-
-              {/* Forgot Password */}
-              <TouchableOpacity className="mb-6">
-                <Text className={`${isDark ? 'text-blue-300' : 'text-blue-500'} text-right text-sm`}>
-                  ¿Olvidaste tu contraseña?
-                </Text>
-              </TouchableOpacity>
-
-              {/* Login Button */}
-              <TouchableOpacity
-                onPress={handleLogin}
-                className="bg-blue-500 rounded-full py-4 mb-6 shadow-md"
-              >
-                <Text className="text-white text-center font-bold text-lg">
-                  Iniciar Sesión
-                </Text>
-              </TouchableOpacity>
-            </View>
+    <ScreenContainer
+      backgroundImage="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop"
+      hasOverlay={true}
+      overlayOpacity={isDark ? 0.5 : 0.2}
+    >
+      <View className="flex-1 justify-center px-6">
+        <FormCard title="Inicia sesión" scrollable={false}>
+          {/* Logo */}
+          <View className="mb-8">
+            <AppLogo variant="colored" size="medium" />
           </View>
-        </View>
-      </ImageBackground>
-    </SafeAreaView>
+
+          {/* Form Fields */}
+          <FormInput
+            label="Email"
+            placeholder="Tu email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            isRequired
+          />
+
+          <FormInput
+            label="Password"
+            placeholder="Tu contraseña"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            isRequired
+          />
+
+          {/* Forgot Password */}
+          <TouchableOpacity className="mb-6">
+            <Text className={`${isDark ? 'text-blue-300' : 'text-blue-500'} text-right text-sm`}>
+              ¿Olvidaste tu contraseña?
+			  {/* TODO: implementar el sistema de olvidado de contraseña*/}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Login Button */}
+          <PrimaryButton
+            title="Iniciar Sesión"
+            onPress={handleLogin}
+            loading={loading}
+            disabled={!isFormValid}
+          />
+        </FormCard>
+      </View>
+    </ScreenContainer>
   );
 }
