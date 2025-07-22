@@ -69,3 +69,19 @@ logs/
 *.tmp
 tmp/
 .cache/
+
+# Archivos de configuración de Android Studio
+.idea/
+android/local.properties
+
+# Archivos de lock temporales de pnpm
+.pnpmfile.cjs
+
+# Archivos de historia de Git (reflog) — no versionar
+.git/logs/
+
+# Directorio de builds locales de EAS (por si cambia)
+.vscode-test/
+
+# Archivos generados por Gradle en root
+.gradle/
