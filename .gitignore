@@ -21,12 +21,14 @@ expo-env.d.ts
 *.mobileprovision
 
 # Android
+/android
 android/.gradle/
 android/app/build/
 android/build/
 *.keystore
 
 # iOS
+/ios
 ios/build/
 ios/Pods/
 ios/Podfile.lock
