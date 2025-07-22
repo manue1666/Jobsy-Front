@@ -35,6 +35,12 @@
     "experiments": {
       "typedRoutes": true
     },
-    "extra": {}
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "11ff8bc9-fb28-40d9-a149-d22cac7fcdb4"
+      }
+    },
+    "owner": "jobsy"
   }
 }
