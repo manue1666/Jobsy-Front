@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
+
 
 // Import your custom components
 import { ScreenContainer } from '@/components/ScreenContainer';
@@ -9,6 +10,8 @@ import { FormCard } from '@/components/FormCard';
 import { AppLogo } from '@/components/AppLogo';
 import { FormInput } from '@/components/FormInput';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import api from '@/request';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -19,15 +22,42 @@ export default function LoginScreen() {
   const isDark = colorScheme === 'dark';
 
   const handleLogin = async () => {
-    setLoading(true);
-    // TODO: Implement login logic
-    console.log('Login pressed', { email, password });
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      router.replace('/(tabs)');
-    }, 1000);
+    try {
+      if(!email || !password){
+        Alert.alert("Error", "Datos incompletos")
+        return
+      }
+
+      setLoading(true)
+
+      const userData = {
+        email,
+        password
+      }
+
+
+      const response = await api.post("/user/login", userData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+      });
+
+      console.log(response)
+
+      await AsyncStorage.setItem('token', response.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+
+
+      router.replace("/(tabs)")
+
+
+    } catch (error) {
+      Alert.alert("Error", "Ocurrio un error en el servidor")
+      console.log(error)
+    } finally{
+      setLoading(false)
+    }
   };
 
   const isFormValid = email.length > 0 && password.length > 0;
