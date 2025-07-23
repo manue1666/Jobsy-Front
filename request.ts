@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Configuración base de Axios
 //CAMBIAR URL
 const api = axios.create({
-  baseURL: "https://0qdcgl00-4000.usw3.devtunnels.ms/",
+  baseURL: process.env.EXPO_PUBLIC_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
