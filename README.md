@@ -103,7 +103,7 @@ Jobsy/
 
 ## TODOs:
 
-- **Autenticación:** Pantallas de registro e inicio de sesión con almacenamiento seguro de tokens (JWT).
+- ~~**Autenticación:** Pantallas de registro e inicio de sesión con almacenamiento seguro de tokens (JWT).~~ [43486d8](https://github.com/MaruDeHabanero/Jobsy-Front/commit/43486d830169db376a3ee72b62b30cffa83d1d6a)
 - **Comunicación con API:** Cliente axios configurado para llamadas REST a un backend Express.
 - **Gestión de estado:** Hooks de React para formularios y estado de autenticación.
 - **Busqueda Geolocalizada**: Se utilizaran datos geolocalizados para buscar profesionales al alcance del usuario.
