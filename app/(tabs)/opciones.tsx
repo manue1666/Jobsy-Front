@@ -3,8 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Image, Linking } from 
 import { useColorScheme } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Slider } from 'react-native-elements';
-import { router } from 'expo-router';
-import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 
@@ -132,7 +131,7 @@ export default function ProfileScreen() {
 							</View>
 						</View>
 						<View className="w-full space-y-3">
-							<Text className={`font-semibold ${textColor} text-center`}>v {appData.version}</Text>
+							<Text className={`font-semibold ${textColor} text-center`}>v {appData?.version}</Text>
 						</View>
 					</>
 				)}

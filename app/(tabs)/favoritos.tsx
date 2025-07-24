@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, View, useColorScheme } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { SearchBar } from '@/components/mainComponents/searchBar';
-import { FavoriteCard } from '@/components/mainComponents/favoritosCard';
+import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
+import { FavoriteCard } from '@/components/mainComponents/favoritos/favoritosCard';
 
 interface FavoriteItem {
   id: string;
