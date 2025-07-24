@@ -6,6 +6,7 @@ import { Slider } from 'react-native-elements';
 import { router } from 'expo-router';
 import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Colors from '@/constants/Colors';
 
 export default function ProfileScreen() {
 	const colorScheme = useColorScheme();
@@ -13,9 +14,7 @@ export default function ProfileScreen() {
 
 	const textColor = isDark ? 'text-white' : 'text-black';
 	const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
-	const cardBg = isDark ? 'bg-neutral-800' : 'bg-neutral-100';
-	const logoutBg = isDark ? 'bg-neutral-700' : 'bg-neutral-200';
-
+	const cardBg = isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100';
 	const [appData, setAppData] = useState<any>(null);
 	const [loading, setLoading] = useState(true);
 	const [searchRange, setSearchRange] = useState(10); // valor inicial en km
@@ -69,7 +68,7 @@ export default function ProfileScreen() {
 
 	return (
 		<ScreenContainer>
-			<SafeAreaView className="flex-1 items-center px-6 py-4 justify-between bg-black">
+			<SafeAreaView className="flex-1 items-center px-6 py-4 justify-between">
 
 				{loading ? (<ActivityIndicator size="large" color={isDark ? 'white' : 'black'} />) : (
 					<>
@@ -84,7 +83,8 @@ export default function ProfileScreen() {
 									<TouchableOpacity
 										key={index}
 										onPress={option.onPress}
-										className={`flex-row items-start p-4 mt-1 rounded-3xl ${cardBg}`}>
+										activeOpacity={0.7}
+										className={`flex-row items-start p-4 mt-1 rounded-3xl shadow-sm ${cardBg}`}>
 										<View className="mr-3">
 											{option.icon(isDark ? 'white' : 'black')}
 										</View>
@@ -92,20 +92,20 @@ export default function ProfileScreen() {
 											<Text className={`font-semibold ${textColor}`}>{option.title}</Text>
 
 											{option.hasSlider ? (
-												<View className="mt-2">
+												<View className="mt-1">
 													<Slider
 														minimumValue={1}
 														maximumValue={100}
 														step={1}
 														value={searchRange}
 														onValueChange={setSearchRange}
-														minimumTrackTintColor="#00b894"
-														maximumTrackTintColor="#ffff"
-														thumbTintColor="#00b894"
+														minimumTrackTintColor= {Colors[colorScheme ?? 'light'].tint}
+														maximumTrackTintColor= {isDark ? "#ffffff" : "#000000"}
+														thumbTintColor= {Colors[colorScheme ?? 'light'].tint}
 														thumbStyle={{
 															height: 14,
 															width: 14,
-															backgroundColor: '#00b894',
+															backgroundColor: Colors[colorScheme ?? 'light'].tint,
 															borderRadius: 7,
 														}}
 														trackStyle={{
