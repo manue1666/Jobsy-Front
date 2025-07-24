@@ -15,7 +15,10 @@ export default function ProfileScreen() {
 	const textColor = isDark ? 'text-white' : 'text-black';
 	const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
 	const cardBg = isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100';
-	const [appData, setAppData] = useState<any>(null);
+	interface AppData {
+		version: string;
+	}
+	const [appData, setAppData] = useState<AppData | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [searchRange, setSearchRange] = useState(10); // valor inicial en km
 
