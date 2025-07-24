@@ -1,28 +1,140 @@
-import { StyleSheet } from 'react-native';
-import { Text, View } from '@/components/Themed';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, Linking } from 'react-native';
+import { useColorScheme } from 'react-native';
+import { ScreenContainer } from '@/components/ScreenContainer';
+import { Slider } from 'react-native-elements';
+import { router } from 'expo-router';
+import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-export default function OptionsScreen() {
-  return (
-	<View style={styles.container}>
-	  <Text style={styles.title}>Donde irán las opciones</Text>
-	  <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-	</View>
-  );
+export default function ProfileScreen() {
+	const colorScheme = useColorScheme();
+	const isDark = colorScheme === 'dark';
+
+	const textColor = isDark ? 'text-white' : 'text-black';
+	const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
+	const cardBg = isDark ? 'bg-neutral-800' : 'bg-neutral-100';
+	const logoutBg = isDark ? 'bg-neutral-700' : 'bg-neutral-200';
+
+	const [appData, setAppData] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
+	const [searchRange, setSearchRange] = useState(10); // valor inicial en km
+
+
+	//Llamada a la API simulada para carga de datos
+	useEffect(() => {
+		setTimeout(() => {
+			setAppData({
+				version: '1.0.0',
+			});
+			setLoading(false);
+		}, 1000);
+	}, []);
+
+	const options = [
+		{
+			icon: (color: string) => <Feather name="flag" size={24} color={color} />,
+			title: 'Idioma',
+			subtitle: 'Cambiar el idioma de la app',
+			//onPress:
+		},
+		{
+			icon: (color: string) => <Feather name="moon" size={24} color={color} />,
+			title: 'Modo oscuro',
+			subtitle: 'Cambia entre modos de vista',
+			//onPress:
+		},
+		{
+			icon: (color: string) => <Feather name="list" size={24} color={color} />,
+			title: 'Informacion de la app',
+			subtitle: 'Revisa la informacion de Jobsy',
+			//onPress:
+		},
+		{
+			icon: (color: string) => <Feather name="map-pin" size={24} color={color} />,
+			title: 'Rango de busqueda',
+			hasSlider: true,
+			//onPress:
+		},
+		{
+			icon: () => <Image
+				source={{ uri: 'https://teteocan.com/wp-content/uploads/2025/06/fav.png' }}
+				style={{ width: 32, height: 26, borderRadius: 2, resizeMode: 'cover' }}
+			/>,
+			title: 'Proyectos Teteocan',
+			subtitle: 'Explora las oportunidades Teteocan que te brindaron esta app',
+			onPress: () => Linking.openURL("https://teteocan.com/servicios/")
+		},
+	];
+
+	return (
+		<ScreenContainer>
+			<SafeAreaView className="flex-1 items-center px-6 py-4 justify-between bg-black">
+
+				{loading ? (<ActivityIndicator size="large" color={isDark ? 'white' : 'black'} />) : (
+					<>
+						<View className="w-full items-center">
+							{/* Título */}
+							<Text className={`text-3xl font-semibold mb-4 ${textColor}`}>Configuracion</Text>
+
+
+							{/* Opciones */}
+							<View className="w-full space-y-3 mt-4">
+								{options.map((option, index) => (
+									<TouchableOpacity
+										key={index}
+										onPress={option.onPress}
+										className={`flex-row items-start p-4 mt-1 rounded-3xl ${cardBg}`}>
+										<View className="mr-3">
+											{option.icon(isDark ? 'white' : 'black')}
+										</View>
+										<View className="flex-1">
+											<Text className={`font-semibold ${textColor}`}>{option.title}</Text>
+
+											{option.hasSlider ? (
+												<View className="mt-2">
+													<Slider
+														minimumValue={1}
+														maximumValue={100}
+														step={1}
+														value={searchRange}
+														onValueChange={setSearchRange}
+														minimumTrackTintColor="#00b894"
+														maximumTrackTintColor="#ffff"
+														thumbTintColor="#00b894"
+														thumbStyle={{
+															height: 14,
+															width: 14,
+															backgroundColor: '#00b894',
+															borderRadius: 7,
+														}}
+														trackStyle={{
+															height: 2,
+															borderRadius: 3
+														}}
+													/>
+													<Text className={`text-xs mt-1 ${subtitleColor}`}>Rango: {searchRange} km</Text>
+												</View>
+											) : (
+												<Text
+													className={`text-sm ${subtitleColor}`}
+													numberOfLines={2}
+													ellipsizeMode="tail">
+													{option.subtitle}
+												</Text>
+											)}
+										</View>
+									</TouchableOpacity>
+								))}
+							</View>
+						</View>
+						<View className="w-full space-y-3">
+							<Text className={`font-semibold ${textColor} text-center`}>v {appData.version}</Text>
+						</View>
+					</>
+				)}
+
+			</SafeAreaView>
+		</ScreenContainer>
+	);
 }
-
-const styles = StyleSheet.create({
-  container: {
-	flex: 1,
-	alignItems: 'center',
-	justifyContent: 'center',
-  },
-  title: {
-	fontSize: 20,
-	fontWeight: 'bold',
-  },
-  separator: {
-	marginVertical: 30,
-	height: 1,
-	width: '80%',
-  },
-});
