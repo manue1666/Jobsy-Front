@@ -4,11 +4,11 @@ import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { FormCard } from '@/components/FormCard';
-import { AppLogo } from '@/components/AppLogo';
-import { FormInput } from '@/components/FormInput';
-import { PrimaryButton } from '@/components/PrimaryButton';
-import { Checkbox } from '@/components/Checkbox';
+import { FormCard } from '@/components/authComponents/FormCard';
+import { AppLogo } from '@/components/authComponents/AppLogo';
+import { FormInput } from '@/components/authComponents/FormInput';
+import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
+import { Checkbox } from '@/components/authComponents/Checkbox';
 
 import { registerUser } from '../../helpers/auth'; // Importa la función de registro
 
@@ -40,7 +40,7 @@ export default function RegistroScreen() {
   const isFormValid = name.length > 0 && email.length > 0 && password.length > 0 && acceptTerms;
 
   return (
-    <ScreenContainer>
+    <ScreenContainer androidSafeArea={false}>
       {/* Header */}
       <View className={`rounded-b-[50px] px-9 pt-16 pb-16 ${isDark ? 'bg-blue-700' : 'bg-blue-500'}`}>
         <View className="items-center mb-8">

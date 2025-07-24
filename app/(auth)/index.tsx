@@ -4,10 +4,10 @@ import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { FormCard } from '@/components/FormCard';
-import { AppLogo } from '@/components/AppLogo';
-import { FormInput } from '@/components/FormInput';
-import { PrimaryButton } from '@/components/PrimaryButton';
+import { FormCard } from '@/components/authComponents/FormCard';
+import { AppLogo } from '@/components/authComponents/AppLogo';
+import { FormInput } from '@/components/authComponents/FormInput';
+import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
 import { loginUser } from '../../helpers/auth'; // Importa la función de login
 
 export default function LoginScreen() {
@@ -35,7 +35,7 @@ export default function LoginScreen() {
 	const isFormValid = email.length > 0 && password.length > 0;
 
 	return (
-		<ScreenContainer>
+		<ScreenContainer androidSafeArea={false}>
 			<View className="flex-1 justify-center px-6">
 				<FormCard title="Inicia sesión" scrollable={false}>
 					{/* Logo */}

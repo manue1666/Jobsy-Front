@@ -45,18 +45,30 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-  // Temporal hasta que hagamos el auth de verdad
+  
+   // Temporal hasta que hagamos el auth de verdad
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const colorScheme = useColorScheme();
+  const skipAuth = process.env.EXPO_PUBLIC_SKIP_AUTH === 'true';
+
+  if (skipAuth) {
+    return (
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        </Stack>
+      </ThemeProvider>
+    )
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
 
-		<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+		    <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

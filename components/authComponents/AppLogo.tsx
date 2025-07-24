@@ -9,8 +9,6 @@ interface AppLogoProps {
 }
 
 export function AppLogo({ variant, size = 'medium', showTagline = true }: AppLogoProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
   const getVariantStyles = () => {
     switch (variant) {
