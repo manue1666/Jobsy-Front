@@ -37,9 +37,15 @@ Jobsy es una aplicación móvil multiplataforma (Android e iOS) construida con R
 	yarn install
 	```
 
-3. **Crea archivo de entorno `.env` en la raíz:**
+3. **Conecta al backend de la aplicación:**
+
+	Para realizar la conexión a la base de datos, tienes que hacer uso de lo siguiente:
+	- Clonar el [Repositorio del Backend](https://github.com/manue1666/jobsy_api) y ejecutarlo.
+	- Abrir VSCode y, en el apartado de PORTS (se encuentra normalmente al lado de la pestaña de terminal), abrir el puerto 4000.
+	- Cambiar la visibilidad de ese puerto a Publico.
+	- Copiar la URL del puerto (deberia terminar en ...devtunnels.ms/) y ponerla en tu .env de esta manera:
 	```
-	API_BASE_URL=http://TU_SERVIDOR:3000/api
+	EXPO_PUBLIC_BASE_URL=https://xxxxxxxx-4000.xxxx.devtunnels.ms/
 	```
 
 4. **Crea los archivos de configuración para expo-env:**
@@ -67,12 +73,11 @@ Jobsy es una aplicación móvil multiplataforma (Android e iOS) construida con R
 
 | Comando                        | Descripción                           |
 | ------------------------------ | ------------------------------------- |
-| `npx expo start`    | Inicia Metro Bundler                  |
+| `npx expo start`    | Inicia Metro Bundler |
 | `npx run android` / `npx expo run:android` | Compila y lanza en emulador Android |
-| `npx run ios` / `npx expo run:ios` | Compila y lanza en simulador iOS      |
-| `eas build --platform android --local` | Genera APK/Bundle Android             |
-| `eas build --platform ios --local`     | Genera IPA iOS                        |
-
+| `npx run ios` / `npx expo run:ios` | Compila y lanza en simulador iOS |
+| `eas build --platform android --local` | Genera APK/Bundle Android (usa --local para no usar builds EAS) |
+| `eas build --platform ios --local`     | Genera IPA iOS |
 ---
 
 ## 📐 Estructura del proyecto
@@ -86,15 +91,15 @@ Jobsy/
 │   └── _layout...tsx   # Layouts anidados
 ├── assets/             # Imágenes, fuentes y recursos estáticos
 ├── components/         # Componentes reutilizables
-├── src/                # Lógica de negocio, cliente API, hooks
-│   └── api/            # Configuración de axios y servicios
+├── helpers/            # Lógica de negocio, cliente API, hooks
 ├── global.css          # TailwindCSS para web (solo web)
 ├── tailwind.config.js  # Configuración de NativeWind
 ├── babel.config.js     # Plugin nativewind/babel
 ├── metro.config.js     # Configuración Metro + NativeWind
-├── development.config.js
-├── production.config.js
-├── .env                # Variables de entorno (ignorado)
+├── development.config.js # Lectura de variables .env para development
+├── production.config.js # Lecutra de variables .env para producción
+├── .env                # Variables de entorno (ignorado, se tendrá que crear por tu cuenta)
+├── .request.ts         # Logica para conexión a API.
 ├── eas.json            # Perfiles de compilación EAS
 └── README.md           # Documentación del proyecto
 ```
