@@ -40,7 +40,7 @@ export default function LoginScreen() {
 				<FormCard title="Inicia sesión" scrollable={false}>
 					{/* Logo */}
 					<View className="mb-8">
-						<AppLogo variant="colored" size="medium" />
+						<AppLogo variant="colored" size="medium"/>
 					</View>
 
 					{/* Form Fields */}
