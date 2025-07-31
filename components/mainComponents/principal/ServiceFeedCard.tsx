@@ -8,10 +8,9 @@ interface ServiceFeedCardProps {
   title: string;
   distance: string;
   personName: string;
-  profilePic: string;
-  serviceImages?: string[];
-  description?: string;
-  isFavorite?: boolean;
+  serviceImages: string[];
+  description: string;
+  isFavorite: boolean;
   isAd?: boolean;
   adUrl?: string;
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
@@ -24,7 +23,6 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   title,
   distance,
   personName,
-  profilePic,
   serviceImages = [],
   description,
   isFavorite = false,
@@ -117,31 +115,25 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
 
       {/* Card Content */}
       <View className="p-4">
-        {/* Header - Profile and Favorite */}
+        {/* Header - Title and Favorite */}
         <View className="flex-row items-center justify-between mb-3">
-          <View className="flex-row items-center flex-1">
-            <Image
-              source={{ uri: profilePic }}
-              className="w-10 h-10 rounded-full mr-3"
-            />
-            <View className="flex-1">
-              <Text className={`font-semibold text-base ${
-                isDark ? 'text-gray-100' : 'text-gray-900'
+          <View className="flex-1">
+            <Text className={`font-semibold text-base ${
+              isDark ? 'text-gray-100' : 'text-gray-900'
+            }`}>
+              {title}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className={`text-sm mr-2 ${
+                isDark ? 'text-gray-300' : 'text-gray-600'
               }`}>
-                {title}
+                {personName}
               </Text>
-              <View className="flex-row items-center">
-                <Text className={`text-sm mr-2 ${
-                  isDark ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                  {personName}
-                </Text>
-                <Text className={`text-sm ${
-                  isDark ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  • {distance}
-                </Text>
-              </View>
+              <Text className={`text-sm ${
+                isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                • {distance}
+              </Text>
             </View>
           </View>
 
