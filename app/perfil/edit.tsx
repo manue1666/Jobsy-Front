@@ -45,12 +45,11 @@ export default function EditProfileScreen() {
 
     const handleConfirm = () => {
         Alert.alert('Datos actualizados', `Nombre: ${name}\nCorreo: ${email}\nTeléfono: ${phone}`);
-        // Aquí podrías hacer la petición a la API para guardar los cambios
+        //Llamar API aqui
     };
 
     return (
         <SafeAreaView className="flex-1 items-center justify-center bg-white px-4">
-            {/* CARD */}
             <View className="bg-white w-full p-6 rounded-3xl shadow-lg items-center space-y-4">
 
                 {/* Imagen */}
