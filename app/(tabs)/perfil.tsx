@@ -7,6 +7,7 @@ import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { deleteUserProfile, getUserProfile } from '../../helpers/profile'; // Importa la función de login
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { navigate } from 'expo-router/build/global-state/routing';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
@@ -67,7 +68,7 @@ export default function ProfileScreen() {
       icon: (color: string) => <Ionicons name="information-circle-outline" size={24} color={color} />,
       title: 'Editar información',
       subtitle: 'Cambiar nombre, teléfono, etc.',
-      onPress: () => '',
+      onPress: () => router.push('/perfil/edit'),
     },
     {
       icon: (color: string) => <Feather name="lock" size={24} color={color} />,
