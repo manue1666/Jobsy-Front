@@ -5,6 +5,7 @@ import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { searchService } from '@/helpers/search_service';
+import { useRouter } from 'expo-router';
 
 interface ServicePost {
   id: string;
@@ -24,6 +25,7 @@ export default function MainFeedScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const router = useRouter()
 
   // Función para transformar los datos del API
   const transformServiceData = (apiServices: any[]): ServicePost[] => {
@@ -41,7 +43,7 @@ export default function MainFeedScreen() {
     }));
   };
 
-  // Función de ejemplo para calcular distancia (implementa según tu lógica)
+  // Función de ejemplo para calcular distancia (simulada)
   const calculateDistance = (coordinates: number[]): string => {
     // Aquí deberías implementar el cálculo real basado en la ubicación del usuario
     const distance = Math.floor(Math.random() * 10) + 1; // Ejemplo aleatorio
@@ -80,7 +82,7 @@ export default function MainFeedScreen() {
   };
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
-    // Aquí deberías implementar la llamada API para marcar como favorito
+    // llamada a api Fovoritos
     setServices(prev =>
       prev.map(service =>
         service.id === id ? { ...service, isFavorite } : service
@@ -90,7 +92,7 @@ export default function MainFeedScreen() {
 
   const handleServicePress = (serviceId: string) => {
     console.log('View service details:', serviceId);
-    // Navegar a pantalla de detalle
+    router.push(`/servicio/${serviceId}`)
   };
 
   const handleLoadMore = () => {

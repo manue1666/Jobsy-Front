@@ -37,7 +37,7 @@ export async function createService(
       tipo
     };
 
-    // Llamada a la API usando POST (cambiado de GET a POST para crear un recurso)
+    // Llamada a la API usando POST
     const response = await api.post('/service/post', requestBody, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -54,7 +54,6 @@ export async function createService(
   } catch (error) {
     // Manejo de errores
     if (error instanceof Error) {
-      // Podemos hacer algo más específico con diferentes tipos de errores
       console.error('Error en createService:', error.message);
       
       // Relanzamos el error para que el componente que llama pueda manejarlo
