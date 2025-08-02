@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
-import { useColorScheme } from 'react-native';
+import React, { useState, useCallback, } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, useColorScheme } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { router } from 'expo-router';
 import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { deleteUserProfile, getUserProfile } from '../../helpers/profile'; // Importa la función de login
+import { deleteUserProfile, getUserProfile } from '../../helpers/profile'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate } from 'expo-router/build/global-state/routing';
 
@@ -21,9 +21,12 @@ export default function ProfileScreen() {
   const [profileData, setProfileData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useFocusEffect(
+  useCallback(() => {
     loadProfileData();
-  }, []);
+  }, [])
+);
+
 
   //metodo para cargar info del perfil
   const loadProfileData = async () => {
@@ -31,9 +34,11 @@ export default function ProfileScreen() {
     try {
       const data = await getUserProfile();
       setProfileData(data);
+      return data;
     } catch (err: any) {
       Alert.alert('Error', err.message || 'Error al obtener el perfil');
       console.log(err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -103,7 +108,7 @@ export default function ProfileScreen() {
             <View className="w-full items-center">
               {/* Imagen y nombre */}
               <Image
-                source={{ uri: 'https://sistemas.com/termino/wp-content/uploads/Usuario-Icono.jpg' }}
+                source={{ uri: profileData.user?.profilePhoto }}
                 className="w-56 h-56 rounded-full mt-4 mb-4"
               />
               <Text className={`text-3xl font-medium mb-1 ${textColor}`}>{profileData.user?.name}</Text>
