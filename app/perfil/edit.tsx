@@ -9,6 +9,7 @@ import {
     ActivityIndicator,
     useColorScheme
 } from 'react-native';
+import { ScreenContainer } from '@/components/ScreenContainer';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getUserProfile, updateUserProfile } from '../../helpers/profile';
@@ -97,7 +98,8 @@ export default function EditProfileScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 items-center justify-center px-4">
+        <ScreenContainer>
+        <SafeAreaView className="flex-1 items-center justify-between px-4">
             <Stack.Screen options={{ title: 'Editar perfil' }} />
             {loading ? (<ActivityIndicator size="large" color={isDark ? 'white' : 'black'} />) : (
                 <>
@@ -145,5 +147,6 @@ export default function EditProfileScreen() {
                 </>
             )}
         </SafeAreaView>
+        </ScreenContainer>
     );
 }
