@@ -43,3 +43,22 @@ export const deleteUserProfile = async (userId: string) => {
     throw new Error(message);
   }
 };
+
+export const updateUserProfile = async (userId: string, dataToUpdate: any) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+
+    const response = await api.patch(`/user/patch/${userId}`, dataToUpdate, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.data;
+
+  } catch (error: any) {
+    const message = error.response?.data?.error || 'Error al actualizar perfil';
+    throw new Error(message);
+  }
+};
