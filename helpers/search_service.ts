@@ -36,6 +36,7 @@ interface SearchParams {
   query?: string;      // Filtro por categoría
   page?: number;       // Número de página
   limit?: number;      // Items por página (opcional)
+  ownerId?: string
 }
 
 export const searchService = async (params?: SearchParams): Promise<SearchResponse> => {
@@ -49,6 +50,7 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
     if (params?.query) queryParams.append('query', params.query);
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
+    if (params?.ownerId) queryParams.append('ownerId', params.ownerId);
 
     const url = `/service/search?${queryParams.toString()}`;
 
