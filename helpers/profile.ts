@@ -44,14 +44,30 @@ export const deleteUserProfile = async (userId: string) => {
   }
 };
 
-export const updateUserProfile = async (userId: string, dataToUpdate: any) => {
+export const updateUserProfile = async (userId: string, dataToUpdate: any, imageUri?: string | null) => {
   try {
     const token = await AsyncStorage.getItem('token');
+    const formData = new FormData();
 
-    const response = await api.patch(`/user/patch/${userId}`, dataToUpdate, {
+    // 1. Si hay imagen nueva, prepara FormData
+    if (imageUri) {
+      formData.append('profileImage', {
+        uri: imageUri,
+        type: 'image/jpeg', // o detectar tipo real
+        name: `profile-${userId}-${Date.now()}.jpg`
+      } as any);
+    }
+
+    // 2. Añade otros campos al FormData
+    Object.keys(dataToUpdate).forEach(key => {
+      formData.append(key, dataToUpdate[key]);
+    });
+
+    // 3. Envía con headers multipart
+    const response = await api.patch(`/user/patch/${userId}`, formData, {
       headers: {
         Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        'Content-Type': 'multipart/form-data',
       },
     });
 

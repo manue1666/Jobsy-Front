@@ -82,54 +82,30 @@ export default function PublicarScreen() {
   };
 
   const handlePublish = async () => {
-    if (!validateForm()) {
-      Alert.alert("Error", "Por favor corrige los errores en el formulario");
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setIsLoading(true);
 
-      // Llamada a la API con los datos (serviceTypes e images pueden estar vacíos)
       await createService(
-        serviceData.serviceName,
-        selectedCategory,
-        serviceData.description,
-        serviceData.phone,
-        serviceData.email,
-        serviceData.address,
-        serviceData.images, // Puede ser array vacío
-        serviceData.serviceTypes // Puede ser array vacío
+        {
+          service_name: serviceData.serviceName,
+          category: selectedCategory,
+          description: serviceData.description,
+          phone: serviceData.phone,
+          email: serviceData.email,
+          address: serviceData.address,
+          tipo: serviceData.serviceTypes,
+        },
+        serviceData.images // Pasa las URIs de las imágenes
       );
 
-      Alert.alert("Éxito", "Tu servicio ha sido publicado correctamente", [
-        {
-          text: "OK",
-          onPress: () => {
-            // Reset form
-            setServiceData({
-              images: [],
-              serviceName: "",
-              description: "",
-              address: "",
-              phone: "",
-              email: "",
-              serviceTypes: [],
-            });
-            setSelectedCategory("");
-          },
-        },
-      ]);
-      
-    } catch (error: any) {
-      console.error("Error al publicar servicio:", error);
-      Alert.alert(
-        "Error",
-        error.message || "No se pudo publicar el servicio. Intenta de nuevo."
-      );
+      Alert.alert("Éxito", "Servicio publicado");
+      router.replace("/(tabs)");
+    } catch (error) {
+      Alert.alert("Error", "error al crear servicio");
     } finally {
       setIsLoading(false);
-      router.replace('/(tabs)');
     }
   };
 
@@ -148,9 +124,7 @@ export default function PublicarScreen() {
         <FormCard title="Publicar Servicio" scrollable>
           {/* Images Section - Ahora opcional */}
           <View className="mb-6">
-            <Text className="text-sm text-gray-500 mb-2">
-              Fotos (opcional)
-            </Text>
+            <Text className="text-sm text-gray-500 mb-2">Fotos (opcional)</Text>
             <ImageUpload
               maxImages={5}
               onImagesChange={(images) => updateServiceData("images", images)}
