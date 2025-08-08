@@ -5,6 +5,7 @@ import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { searchService } from '@/helpers/search_service';
+import { addFavorite, removeFavorite } from '@/helpers/service';
 import { useRouter } from 'expo-router';
 
 interface ServicePost {
@@ -117,7 +118,7 @@ export default function MainFeedScreen() {
     fetchServices();
   }, []);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <ScreenContainer>
         <View className="flex-1 justify-center items-center">
