@@ -79,7 +79,7 @@ export default function ProfileScreen() {
       icon: (color: string) => <Feather name="lock" size={24} color={color} />,
       title: 'Cambiar contraseña',
       subtitle: 'Establecer una nueva contraseña',
-      onPress: () => '',
+      onPress: () => router.push('/perfil/password'),
     },
     {
       icon: (color: string) => <MaterialIcons name="delete-outline" size={24} color={color} />,
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
       icon: (color: string) => <Feather name="file-text" size={24} color={color} />,
       title: 'Mis publicaciones',
       subtitle: 'Administra tus servicios publicados',
-      onPress: () => '',
+      onPress: () => router.push('/perfil/publicados'),
     },
   ];
 
@@ -108,7 +108,7 @@ export default function ProfileScreen() {
             <View className="w-full items-center">
               {/* Imagen y nombre */}
               <Image
-                source={{ uri: profileData.user?.profilePhoto }}
+                source={{ uri: profileData.user?.profilePhoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}}
                 className="w-56 h-56 rounded-full mt-4 mb-4"
               />
               <Text className={`text-3xl font-medium mb-1 ${textColor}`}>{profileData.user?.name}</Text>

@@ -73,3 +73,6 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+// TODO: Implementar mejor autenticación por la Autenticación de Expo
+// https://docs.expo.dev/router/advanced/authentication/

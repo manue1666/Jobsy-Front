@@ -26,7 +26,7 @@ export default function RegistroScreen() {
       setLoading(true);
       try {
         await registerUser(name, email, password);
-        router.replace('/(tabs)');
+        router.replace('/(auth)');
       } catch (err: any) {
         // err.message vendrá de nuestros “throw new Error()”
         Alert.alert('Error', err.message || 'Error al registrar usuario');
@@ -34,6 +34,7 @@ export default function RegistroScreen() {
       } finally {
         Alert.alert("Éxito", "Registro completado. Ahora puedes iniciar sesión");
         setLoading(false);
+        router.replace('/(auth)');
       }
     };
 

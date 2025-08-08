@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ScrollView, View, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
-import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { searchService } from '@/helpers/search_service';
 import { useRouter } from 'expo-router';
+import { getUserProfile } from '../../helpers/profile';
 
 interface ServicePost {
   id: string;
@@ -26,6 +25,8 @@ export default function MainFeedScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
+  const [profileData, setProfileData] = useState<any>(null);
+  const [userId, setUserId] = useState(''); 
 
   // Función para transformar los datos del API
   const transformServiceData = (apiServices: any[]): ServicePost[] => {
@@ -43,6 +44,20 @@ export default function MainFeedScreen() {
     }));
   };
 
+  const loadProfileData = async () => {
+    try {
+      const data = await getUserProfile();
+      if (data?.user) {
+        setProfileData(data);
+        return data.user._id;  // <-- retorna el id
+      }
+    } catch (err: any) {
+      Alert.alert('Error', err.message || 'Error al obtener el perfil');
+      console.log(err);
+    }
+    return null;
+  };
+
   // Función de ejemplo para calcular distancia (simulada)
   const calculateDistance = (coordinates: number[]): string => {
     // Aquí deberías implementar el cálculo real basado en la ubicación del usuario
@@ -50,17 +65,18 @@ export default function MainFeedScreen() {
     return `${distance}km`;
   };
 
-  const fetchServices = async (pageNum = 1, searchQuery = '') => {
+  const fetchServices = async (pageNum = 1, searchQuery = '', OwnerId = '') => {
     try {
       setLoading(true);
-      const result = await searchService({ 
+      const result = await searchService({
         query: searchQuery,
         page: pageNum,
-        limit: 10 // Puedes ajustar este valor
+        limit: 10, // Puedes ajustar este valor,
+        ownerId: OwnerId
       });
-      
-      setServices(prev => pageNum === 1 
-        ? transformServiceData(result.services) 
+
+      setServices(prev => pageNum === 1
+        ? transformServiceData(result.services)
         : [...prev, ...transformServiceData(result.services)]);
       setTotalPages(result.pages);
       setPage(pageNum);
@@ -72,33 +88,18 @@ export default function MainFeedScreen() {
     }
   };
 
-  const handleSearch = () => {
-    fetchServices(1, searchText);
-  };
-
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchServices(1, searchText);
+    await fetchServices(1, searchText, profileData._id);
   };
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
-    try {
-      if (!isFavorite) {
-        await addFavorite(id); // Lo agrego si no es favorito
-      } else {
-        await removeFavorite(id); // Lo quito si ya lo era
-      }
-
-      // Actualizar el estado localmente
-      setServices(prev =>
-        prev.map(service =>
-          service.id === id ? { ...service, isFavorite: !isFavorite } : service
-        )
-      );
-    } catch (error) {
-      console.error('Error al marcar como favorito:', error);
-      Alert.alert('Error', 'No se pudo actualizar el favorito');
-    }
+    // llamada a api Fovoritos
+    setServices(prev =>
+      prev.map(service =>
+        service.id === id ? { ...service, isFavorite } : service
+      )
+    );
   };
 
   const handleServicePress = (serviceId: string) => {
@@ -108,24 +109,21 @@ export default function MainFeedScreen() {
 
   const handleLoadMore = () => {
     if (page < totalPages && !loading) {
-      fetchServices(page + 1, searchText);
+      fetchServices(page + 1, searchText, profileData._id);
     }
   };
 
   // Efecto inicial para cargar datos
   useEffect(() => {
-    fetchServices();
+    const init = async () => {
+      const userId = await loadProfileData();
+      setUserId(userId);
+      fetchServices(1, '', userId); 
+    }
+    init();
   }, []);
 
-  if (isLoading) {
-    return (
-      <ScreenContainer>
-        <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" />
-        </View>
-      </ScreenContainer>
-    );
-  }
+
   return (
     <ScreenContainer>
       <ScrollView
@@ -144,20 +142,6 @@ export default function MainFeedScreen() {
         }}
         scrollEventThrottle={400}
       >
-        {/* Header */}
-        <FeedHeader
-          userName="Gabriel"
-          onProfilePress={() => console.log('Profile pressed')}
-          onNotificationsPress={() => console.log('Notifications pressed')}
-        />
-
-        {/* Search Bar */}
-        <SearchBar
-          placeholder="Buscar servicios..."
-          value={searchText}
-          onChangeText={setSearchText}
-          onSearchPress={handleSearch}
-        />
 
         {/* Service Feed */}
         <View className="pb-6">
@@ -188,7 +172,7 @@ export default function MainFeedScreen() {
               serviceImages={service.serviceImages}
               description={service.description}
               isFavorite={service.isFavorite}
-              onToggleFavorite={() => handleToggleFavorite(service.id, service.isFavorite)}
+              onToggleFavorite={handleToggleFavorite}
               onPress={() => handleServicePress(service.id)}
             />
           ))}

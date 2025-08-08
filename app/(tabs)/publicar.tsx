@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
-import { View, Alert, Text } from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
-import { FormCard } from '@/components/authComponents/FormCard';
-import { FormInput } from '@/components/authComponents/FormInput';
-import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
-import { ImageUpload } from '@/components/mainComponents/publicar/subirImagen';
-import { ServiceTypeSelector } from '@/components/mainComponents/publicar/escogerServicio';
-import { LocationInput } from '@/components/mainComponents/publicar/escogerLocalizacion';
+import React, { useState } from "react";
+import { View, Alert, Text } from "react-native";
+import { ScreenContainer } from "@/components/ScreenContainer";
+import { FormCard } from "@/components/authComponents/FormCard";
+import { FormInput } from "@/components/authComponents/FormInput";
+import { PrimaryButton } from "@/components/authComponents/PrimaryButton";
+import { ImageUpload } from "@/components/mainComponents/publicar/subirImagen";
+import { ServiceTypeSelector } from "@/components/mainComponents/publicar/escogerServicio";
+import { LocationInput } from "@/components/mainComponents/publicar/escogerLocalizacion";
+import { CategorySelector } from "@/components/mainComponents/publicar/escogerCategoria";
+import { createService } from "@/helpers/service";
+import { router } from "expo-router";
 
 interface ServiceData {
   images: string[];
@@ -24,106 +27,94 @@ interface FormErrors {
   address?: string;
   phone?: string;
   email?: string;
-  serviceTypes?: string;
-}
+  category?: string;
+} // Eliminado serviceTypes de los errores
 
 export default function PublicarScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [serviceData, setServiceData] = useState<ServiceData>({
     images: [],
-    serviceName: '',
-    description: '',
-    address: '',
-    phone: '',
-    email: '',
-    serviceTypes: [],
+    serviceName: "",
+    description: "",
+    address: "",
+    phone: "",
+    email: "",
+    serviceTypes: [], // Ahora es opcional
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!serviceData.serviceName.trim()) {
-      newErrors.serviceName = 'El nombre del servicio es requerido';
+      newErrors.serviceName = "El nombre del servicio es requerido";
     }
 
     if (!serviceData.description.trim()) {
-      newErrors.description = 'La descripción es requerida';
+      newErrors.description = "La descripción es requerida";
     }
 
     if (!serviceData.address.trim()) {
-      newErrors.address = 'La dirección es requerida';
+      newErrors.address = "La dirección es requerida";
     }
 
     if (!serviceData.phone.trim()) {
-      newErrors.phone = 'El teléfono es requerido';
-    } else if (!/^\d{10}$/.test(serviceData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Ingresa un teléfono válido de 10 dígitos';
+      newErrors.phone = "El teléfono es requerido";
+    } else if (!/^\d{10}$/.test(serviceData.phone.replace(/\s/g, ""))) {
+      newErrors.phone = "Ingresa un teléfono válido de 10 dígitos";
     }
 
     if (!serviceData.email.trim()) {
-      newErrors.email = 'El correo es requerido';
+      newErrors.email = "El correo es requerido";
     } else if (!/\S+@\S+\.\S+/.test(serviceData.email)) {
-      newErrors.email = 'Ingresa un correo válido';
+      newErrors.email = "Ingresa un correo válido";
     }
 
-    if (serviceData.serviceTypes.length === 0) {
-      newErrors.serviceTypes = 'Selecciona al menos un tipo de servicio';
+    if (!selectedCategory) {
+      newErrors.category = "Selecciona una categoría";
     }
+
+    // Eliminada la validación de serviceTypes
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handlePublish = async () => {
-    if (!validateForm()) {
-      Alert.alert('Error', 'Por favor corrige los errores en el formulario');
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setIsLoading(true);
-      
-      // Here you would typically send the data to your backend
-      console.log('Publishing service:', serviceData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      Alert.alert(
-        'Éxito',
-        'Tu servicio ha sido publicado correctamente',
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              // Reset form or navigate away
-              setServiceData({
-                images: [],
-                serviceName: '',
-                description: '',
-                address: '',
-                phone: '',
-                email: '',
-                serviceTypes: [],
-              });
-            }
-          }
-        ]
+
+      await createService(
+        {
+          service_name: serviceData.serviceName,
+          category: selectedCategory,
+          description: serviceData.description,
+          phone: serviceData.phone,
+          email: serviceData.email,
+          address: serviceData.address,
+          tipo: serviceData.serviceTypes,
+        },
+        serviceData.images // Pasa las URIs de las imágenes
       );
+
+      Alert.alert("Éxito", "Servicio publicado");
+      router.replace("/(tabs)");
     } catch (error) {
-      Alert.alert('Error', 'No se pudo publicar el servicio. Intenta de nuevo.');
+      Alert.alert("Error", "error al crear servicio");
     } finally {
       setIsLoading(false);
     }
   };
 
   const updateServiceData = (field: keyof ServiceData, value: any) => {
-    setServiceData(prev => ({ ...prev, [field]: value }));
-    
+    setServiceData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error when user starts typing
     if (errors[field as keyof FormErrors]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
@@ -131,11 +122,12 @@ export default function PublicarScreen() {
     <ScreenContainer>
       <View className="flex-1 px-4 py-6">
         <FormCard title="Publicar Servicio" scrollable>
-          {/* Images Section */}
+          {/* Images Section - Ahora opcional */}
           <View className="mb-6">
+            <Text className="text-sm text-gray-500 mb-2">Fotos (opcional)</Text>
             <ImageUpload
               maxImages={5}
-              onImagesChange={(images) => updateServiceData('images', images)}
+              onImagesChange={(images) => updateServiceData("images", images)}
             />
           </View>
 
@@ -143,17 +135,30 @@ export default function PublicarScreen() {
           <FormInput
             label="Nombre de tu servicio"
             value={serviceData.serviceName}
-            onChangeText={(text) => updateServiceData('serviceName', text)}
+            onChangeText={(text) => updateServiceData("serviceName", text)}
             placeholder="Ej: Electricista profesional"
             error={errors.serviceName}
             isRequired
           />
 
+          {/* Category Selector */}
+          <CategorySelector
+            label="Categoría"
+            isRequired={true}
+            selectedCategory={selectedCategory}
+            onCategoryChange={setSelectedCategory}
+          />
+          {errors.category && (
+            <View className="-mt-4 mb-4">
+              <Text className="text-red-500 text-xs">{errors.category}</Text>
+            </View>
+          )}
+
           {/* Description */}
           <FormInput
             label="Descripción del servicio"
             value={serviceData.description}
-            onChangeText={(text) => updateServiceData('description', text)}
+            onChangeText={(text) => updateServiceData("description", text)}
             placeholder="Describe tu servicio, experiencia y especialidades..."
             error={errors.description}
             isRequired
@@ -165,11 +170,10 @@ export default function PublicarScreen() {
           {/* Address */}
           <LocationInput
             value={serviceData.address}
-            onChangeText={(text) => updateServiceData('address', text)}
+            onChangeText={(text) => updateServiceData("address", text)}
             onLocationSelect={(location) => {
-              updateServiceData('address', location.address);
-              // You could also store coordinates for later use
-              console.log('Location selected:', location);
+              updateServiceData("address", location.address);
+              console.log("Location selected:", location);
             }}
           />
           {errors.address && (
@@ -182,7 +186,7 @@ export default function PublicarScreen() {
           <FormInput
             label="Teléfono"
             value={serviceData.phone}
-            onChangeText={(text) => updateServiceData('phone', text)}
+            onChangeText={(text) => updateServiceData("phone", text)}
             placeholder="Ej: 4491234567"
             error={errors.phone}
             isRequired
@@ -194,7 +198,7 @@ export default function PublicarScreen() {
           <FormInput
             label="Correo electrónico"
             value={serviceData.email}
-            onChangeText={(text) => updateServiceData('email', text)}
+            onChangeText={(text) => updateServiceData("email", text)}
             placeholder="tu@correo.com"
             error={errors.email}
             isRequired
@@ -202,21 +206,23 @@ export default function PublicarScreen() {
             autoCapitalize="none"
           />
 
-          {/* Service Types */}
-          <ServiceTypeSelector
-            onSelectionChange={(types) => updateServiceData('serviceTypes', types)}
-            allowMultiple
-          />
-          {errors.serviceTypes && (
-            <View className="-mt-4 mb-4">
-              <Text className="text-red-500 text-xs">{errors.serviceTypes}</Text>
-            </View>
-          )}
+          {/* Service Types - Ahora opcional */}
+          <View className="mb-6">
+            <Text className="text-sm text-gray-500 mb-2">
+              Tipo de servicio (opcional)
+            </Text>
+            <ServiceTypeSelector
+              onSelectionChange={(types) =>
+                updateServiceData("serviceTypes", types)
+              }
+              allowMultiple
+            />
+          </View>
 
           {/* Submit Button */}
           <View className="mt-8">
             <PrimaryButton
-              title="Guardar"
+              title="Publicar Servicio"
               onPress={handlePublish}
               loading={isLoading}
               size="large"
