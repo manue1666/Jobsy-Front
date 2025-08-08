@@ -82,12 +82,23 @@ export default function MainFeedScreen() {
   };
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
-    // llamada a api Fovoritos
-    setServices(prev =>
-      prev.map(service =>
-        service.id === id ? { ...service, isFavorite } : service
-      )
-    );
+    try {
+      if (!isFavorite) {
+        await addFavorite(id); // Lo agrego si no es favorito
+      } else {
+        await removeFavorite(id); // Lo quito si ya lo era
+      }
+
+      // Actualizar el estado localmente
+      setServices(prev =>
+        prev.map(service =>
+          service.id === id ? { ...service, isFavorite: !isFavorite } : service
+        )
+      );
+    } catch (error) {
+      console.error('Error al marcar como favorito:', error);
+      Alert.alert('Error', 'No se pudo actualizar el favorito');
+    }
   };
 
   const handleServicePress = (serviceId: string) => {
@@ -106,6 +117,15 @@ export default function MainFeedScreen() {
     fetchServices();
   }, []);
 
+  if (isLoading) {
+    return (
+      <ScreenContainer>
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" />
+        </View>
+      </ScreenContainer>
+    );
+  }
   return (
     <ScreenContainer>
       <ScrollView
@@ -168,11 +188,11 @@ export default function MainFeedScreen() {
               serviceImages={service.serviceImages}
               description={service.description}
               isFavorite={service.isFavorite}
-              onToggleFavorite={handleToggleFavorite}
+              onToggleFavorite={() => handleToggleFavorite(service.id, service.isFavorite)}
               onPress={() => handleServicePress(service.id)}
             />
           ))}
-          
+
           {loading && page > 1 && (
             <View className="py-4">
               <ActivityIndicator size="small" />
