@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { ScrollView, View, useColorScheme } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, View, useColorScheme, Alert, RefreshControl, SafeAreaView } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FavoriteCard } from '@/components/mainComponents/favoritos/favoritosCard';
+import { removeFavorite } from '@/helpers/favorites';
+import { searchService } from '@/helpers/search_service';
+import { useRouter } from 'expo-router';
 
 interface FavoriteItem {
   id: string;
@@ -16,92 +19,152 @@ interface FavoriteItem {
 export default function FavoritesScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
-  const [searchText, setSearchText] = useState('');
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([
-    {
-      id: '1',
-      title: 'Electricista',
-      distance: '5km',
-      personName: 'David',
-      profilePic: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
-      isFavorite: true,
-    },
-    {
-      id: '2',
-      title: 'Plomero',
-      distance: '5km',
-      personName: 'Sergio',
-      profilePic: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
-      isFavorite: true,
-    },
-    {
-      id: '3',
-      title: 'Carpintero',
-      distance: '5km',
-      personName: 'Jose',
-      profilePic: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-      isFavorite: true,
-    },
-    {
-      id: '4',
-      title: 'Albañil',
-      distance: '5km',
-      personName: 'Juan',
-      profilePic: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=150&h=150&fit=crop&crop=face',
-      isFavorite: true,
-    },
-  ]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const router = useRouter()
 
-  const handleToggleFavorite = (id: string, isFavorite: boolean) => {
-    setFavorites(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, isFavorite } : item
-      )
-    );
+  const [searchText, setSearchText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
+
+  // Función para transformar los datos del API
+  const transformServiceData = (apiServices: any[]): FavoriteItem[] => {
+    return apiServices.map(service => ({
+      id: service._id,
+      title: service.service_name,
+      distance: calculateDistance(service.service_location.coordinates), // Función ficticia
+      personName: service.user?.name || 'Anónimo',
+      profilePic: service.user?.profilePhoto,
+      isFavorite: service.isFavorite || false,
+    }));
+  };
+
+  // Función de ejemplo para calcular distancia (simulada)
+  const calculateDistance = (coordinates: number[]): string => {
+    // Aquí deberías implementar el cálculo real basado en la ubicación del usuario
+    const distance = Math.floor(Math.random() * 10) + 1; // Ejemplo aleatorio
+    return `${distance}km`;
+  };
+
+  const fetchFavorites = async (pageNum = 1, searchQuery = '') => {
+    try {
+      setLoading(true);
+      const result = await searchService({
+        query: searchQuery,
+        page: pageNum,
+        limit: 10 // Puedes ajustar este valor
+      });
+
+      setFavorites(prev => pageNum === 1
+        ? transformServiceData(result.services)
+        : [...prev, ...transformServiceData(result.services)]);
+      setTotalPages(result.pages);
+      setPage(pageNum);
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Error al cargar servicios');
+    } finally {
+      setLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
+    try {
+      await removeFavorite(id); // remover favorito
+
+      // Actualizar el estado localmente
+      setFavorites(prev =>
+        prev.map(service =>
+          service.id === id ? { ...service, isFavorite: !isFavorite } : service
+        )
+      );
+    } catch (error) {
+      console.error('Error al marcar como favorito:', error);
+      Alert.alert('Error', 'No se pudo actualizar el favorito');
+    }
   };
 
   const handleSearch = () => {
-    // Implement search functionality here
-    console.log('Searching for:', searchText);
+    fetchFavorites(1, searchText);
+  };
+
+    const handleServicePress = (serviceId: string) => {
+    console.log('View service details:', serviceId);
+    router.push(`/servicio/${serviceId}`)
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await fetchFavorites(1, searchText);
   };
 
   const filteredFavorites = favorites.filter(item =>
-    item.isFavorite && 
+    item.isFavorite &&
     (item.title.toLowerCase().includes(searchText.toLowerCase()) ||
-     item.personName.toLowerCase().includes(searchText.toLowerCase()))
+      item.personName.toLowerCase().includes(searchText.toLowerCase()))
   );
+
+  const handleLoadMore = () => {
+    if (page < totalPages && !loading) {
+      fetchFavorites(page + 1, searchText);
+    }
+  };
+
+  // Efecto inicial para cargar datos
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
 
   return (
     <ScreenContainer>
-      <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
-        <SearchBar
-          placeholder="Buscar favoritos..."
-          value={searchText}
-          onChangeText={setSearchText}
-          onSearchPress={handleSearch}
-        />
-        
-        <ScrollView 
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
-          {filteredFavorites.map((item) => (
-            <FavoriteCard
-              key={item.id}
-              id={item.id}
-              title={item.title}
-              distance={item.distance}
-              personName={item.personName}
-              profilePic={item.profilePic}
-              isFavorite={item.isFavorite}
-              onToggleFavorite={handleToggleFavorite}
-              onPress={() => console.log('Card pressed:', item.title)}
-            />
-          ))}
-        </ScrollView>
-      </View>
+        <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} py-6`}>
+          <SearchBar
+            placeholder="Buscar favoritos..."
+            value={searchText}
+            onChangeText={setSearchText}
+            onSearchPress={handleSearch}
+          />
+
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+            onScroll={({ nativeEvent }) => {
+              if (isCloseToBottom(nativeEvent)) {
+                handleLoadMore();
+              }
+            }}
+            scrollEventThrottle={400}
+          >
+            {filteredFavorites.map((item) => (
+              <FavoriteCard
+                key={item.id}
+                id={item.id}
+                title={item.title}
+                distance={item.distance}
+                personName={item.personName}
+                profilePic={item.profilePic}
+                isFavorite={item.isFavorite}
+                onToggleFavorite={handleToggleFavorite}
+                onPress={() => handleServicePress(item.id)}
+              />
+            ))}
+          </ScrollView>
+        </View>
     </ScreenContainer>
   );
 }
+
+// Función auxiliar para detectar scroll cerca del final
+const isCloseToBottom = ({ layoutMeasurement, contentOffset, contentSize }: any) => {
+  const paddingToBottom = 20;
+  return layoutMeasurement.height + contentOffset.y >=
+    contentSize.height - paddingToBottom;
+};

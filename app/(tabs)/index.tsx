@@ -5,7 +5,7 @@ import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { searchService } from '@/helpers/search_service';
-import { addFavorite, removeFavorite } from '@/helpers/service';
+import { addFavorite, removeFavorite } from '@/helpers/favorites';
 import { useRouter } from 'expo-router';
 
 interface ServicePost {
