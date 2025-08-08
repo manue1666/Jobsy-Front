@@ -1,79 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, View, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, View, useColorScheme, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
-import { searchService } from '@/helpers/search_service';
-import { useRouter } from 'expo-router';
-import { getUserProfile } from '../../helpers/profile';
+import { getUserServices } from '@/helpers/service';
+import { useRouter, Stack } from 'expo-router';
+import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
 
-interface ServicePost {
+interface myService {
   id: string;
   title: string;
-  distance: string;
   personName: string;
-  serviceImages: string[];
-  description: string;
-  isFavorite: boolean;
-  category: string;
+  profilePic: string;
 }
 
 export default function MainFeedScreen() {
   const [searchText, setSearchText] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [services, setServices] = useState<ServicePost[]>([]);
+  const [services, setServices] = useState<myService[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
-  const [profileData, setProfileData] = useState<any>(null);
-  const [userId, setUserId] = useState(''); 
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   // Función para transformar los datos del API
-  const transformServiceData = (apiServices: any[]): ServicePost[] => {
+  const transformServiceData = (apiServices: any[]): myService[] => {
     return apiServices.map(service => ({
       id: service._id,
       title: service.service_name,
-      distance: calculateDistance(service.service_location.coordinates), // Función ficticia
-      personName: service.user?.name || 'Anónimo',
-      serviceImages: service.photos.length > 0 ? service.photos : [
-        'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop' // Imagen por defecto
-      ],
-      description: service.description,
-      isFavorite: service.isFavorite || false,
-      category: service.category,
+      personName: service.user_id?.name || 'Anónimo',
+      profilePic: service.user_id?.profilePhoto
     }));
-  };
-
-  const loadProfileData = async () => {
-    try {
-      const data = await getUserProfile();
-      if (data?.user) {
-        setProfileData(data);
-        return data.user._id;  // <-- retorna el id
-      }
-    } catch (err: any) {
-      Alert.alert('Error', err.message || 'Error al obtener el perfil');
-      console.log(err);
-    }
-    return null;
-  };
-
-  // Función de ejemplo para calcular distancia (simulada)
-  const calculateDistance = (coordinates: number[]): string => {
-    // Aquí deberías implementar el cálculo real basado en la ubicación del usuario
-    const distance = Math.floor(Math.random() * 10) + 1; // Ejemplo aleatorio
-    return `${distance}km`;
   };
 
   const fetchServices = async (pageNum = 1, searchQuery = '', OwnerId = '') => {
     try {
       setLoading(true);
-      const result = await searchService({
-        query: searchQuery,
-        page: pageNum,
-        limit: 10, // Puedes ajustar este valor,
-        ownerId: OwnerId
-      });
+      const result = await getUserServices();
 
       setServices(prev => pageNum === 1
         ? transformServiceData(result.services)
@@ -88,18 +52,10 @@ export default function MainFeedScreen() {
     }
   };
 
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchServices(1, searchText, profileData._id);
-  };
-
-  const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
-    // llamada a api Fovoritos
-    setServices(prev =>
-      prev.map(service =>
-        service.id === id ? { ...service, isFavorite } : service
-      )
-    );
+    await fetchServices(1, searchText);
   };
 
   const handleServicePress = (serviceId: string) => {
@@ -109,82 +65,76 @@ export default function MainFeedScreen() {
 
   const handleLoadMore = () => {
     if (page < totalPages && !loading) {
-      fetchServices(page + 1, searchText, profileData._id);
+      fetchServices(page + 1, searchText);
     }
   };
 
   // Efecto inicial para cargar datos
   useEffect(() => {
     const init = async () => {
-      const userId = await loadProfileData();
-      setUserId(userId);
-      fetchServices(1, '', userId); 
+      fetchServices(1, '');
     }
     init();
   }, []);
 
 
   return (
-    <ScreenContainer>
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-          />
-        }
-        onScroll={({ nativeEvent }) => {
-          if (isCloseToBottom(nativeEvent)) {
-            handleLoadMore();
-          }
-        }}
-        scrollEventThrottle={400}
-      >
-
-        {/* Service Feed */}
-        <View className="pb-6">
-          {/* Ejemplo de anuncio estático (similar al que tenías) */}
-          <ServiceFeedCard
-            id="ad-1"
-            title="GRANDES PROPUESTAS"
-            distance="Patrocinado"
-            personName="Burger King"
-            serviceImages={[
-              'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-              'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop'
-            ]}
-            description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
-            isFavorite={false}
-            isAd={true}
-            onPress={() => console.log('Anuncio presionado')}
-          />
-
-          {/* Lista de servicios */}
-          {services.map((service) => (
-            <ServiceFeedCard
-              key={service.id}
-              id={service.id}
-              title={service.title}
-              distance={service.distance}
-              personName={service.personName}
-              serviceImages={service.serviceImages}
-              description={service.description}
-              isFavorite={service.isFavorite}
-              onToggleFavorite={handleToggleFavorite}
-              onPress={() => handleServicePress(service.id)}
+      <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} py-6`}>
+        <Stack.Screen options={{ title: 'Mis servicios' }} />
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
             />
-          ))}
+          }
+          onScroll={({ nativeEvent }) => {
+            if (isCloseToBottom(nativeEvent)) {
+              handleLoadMore();
+            }
+          }}
+          scrollEventThrottle={400}
+        >
 
-          {loading && page > 1 && (
-            <View className="py-4">
-              <ActivityIndicator size="small" />
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </ScreenContainer>
+          {/* Service Feed */}
+          <View className="pb-6">
+            {/* Ejemplo de anuncio estático (similar al que tenías) */}
+            <ServiceFeedCard
+              id="ad-1"
+              title="GRANDES PROPUESTAS"
+              distance="Patrocinado"
+              personName="Burger King"
+              serviceImages={[
+                'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
+                'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop'
+              ]}
+              description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
+              isFavorite={false}
+              isAd={true}
+              onPress={() => console.log('Anuncio presionado')}
+            />
+            {/* Lista de servicios */}
+            {services.map((service) => (
+              <OwnedServiceCard
+                key={service.id}
+                id={service.id}
+                profilePic={service.profilePic}
+                title={service.title}
+                personName={service.personName}
+                onPress={() => handleServicePress(service.id)}
+              />
+            ))}
+
+            {loading && page > 1 && (
+              <View className="py-4">
+                <ActivityIndicator size="small" />
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </View>
   );
 }
 

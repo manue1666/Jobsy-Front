@@ -2,7 +2,7 @@ import api from '@/request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //Obtener favoritos del usuario
-export async function getFavorites(service_id: string) {
+export async function getFavorites() {
    try {
     const token = await AsyncStorage.getItem('token');
     if (!token) throw new Error('No se encontró el token de autenticación');
