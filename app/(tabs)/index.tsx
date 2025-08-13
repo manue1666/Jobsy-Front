@@ -6,6 +6,7 @@ import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { searchService } from '@/helpers/search_service';
 import { addFavorite, removeFavorite } from '@/helpers/favorites';
+import { getUserProfile } from '../../helpers/profile';
 import { useRouter } from 'expo-router';
 
 interface ServicePost {
@@ -26,6 +27,7 @@ export default function MainFeedScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState<any>(null);
   const router = useRouter()
 
   // Función para transformar los datos del API
@@ -51,17 +53,33 @@ export default function MainFeedScreen() {
     return `${distance}km`;
   };
 
+  //metodo para cargar info del usuario activo
+    const loadProfileData = async () => {
+      setLoading(true);
+      try {
+        const data = await getUserProfile();
+        setProfileData(data);
+        return data;
+      } catch (err: any) {
+        Alert.alert('Error', err.message || 'Error al obtener el perfil');
+        console.log(err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    };
+
   const fetchServices = async (pageNum = 1, searchQuery = '') => {
     try {
       setLoading(true);
-      const result = await searchService({ 
+      const result = await searchService({
         query: searchQuery,
         page: pageNum,
         limit: 10 // Puedes ajustar este valor
       });
-      
-      setServices(prev => pageNum === 1 
-        ? transformServiceData(result.services) 
+
+      setServices(prev => pageNum === 1
+        ? transformServiceData(result.services)
         : [...prev, ...transformServiceData(result.services)]);
       setTotalPages(result.pages);
       setPage(pageNum);
@@ -115,6 +133,7 @@ export default function MainFeedScreen() {
 
   // Efecto inicial para cargar datos
   useEffect(() => {
+    loadProfileData();
     fetchServices();
   }, []);
 
@@ -147,7 +166,8 @@ export default function MainFeedScreen() {
       >
         {/* Header */}
         <FeedHeader
-          userName="Gabriel"
+          userName={profileData.user?.name}
+          userImage={profileData.user?.profilePhoto}
           onProfilePress={() => console.log('Profile pressed')}
           onNotificationsPress={() => console.log('Notifications pressed')}
         />

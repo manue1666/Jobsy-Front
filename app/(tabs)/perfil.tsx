@@ -5,12 +5,12 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { router } from 'expo-router';
 import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { deleteUserProfile, getUserProfile } from '../../helpers/profile'; 
+import { deleteUserProfile, getUserProfile } from '../../helpers/profile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '@/context/themeContext';
 
 export default function ProfileScreen() {
-  const {currentTheme} = useContext(ThemeContext);
+  const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === "dark";
   const textColor = isDark ? 'text-white' : 'text-black';
   const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
@@ -21,10 +21,10 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
-  useCallback(() => {
-    loadProfileData();
-  }, [])
-);
+    useCallback(() => {
+      loadProfileData();
+    }, [])
+  );
 
 
   //metodo para cargar info del perfil
@@ -107,7 +107,7 @@ export default function ProfileScreen() {
             <View className="w-full items-center">
               {/* Imagen y nombre */}
               <Image
-                source={{ uri: profileData.user?.profilePhoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}}
+                source={{ uri: profileData.user?.profilePhoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
                 className="w-56 h-56 rounded-full mt-4 mb-4"
               />
               <Text className={`text-3xl font-medium mb-1 ${textColor}`}>{profileData.user?.name}</Text>
