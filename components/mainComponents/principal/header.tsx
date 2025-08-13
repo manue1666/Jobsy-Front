@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { ThemeContext } from '@/context/themeContext';
 
 interface FeedHeaderProps {
   userName?: string;
@@ -16,8 +16,8 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
   onProfilePress,
   onNotificationsPress
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   return (
     <View className={`flex-row items-center justify-between px-4 py-4 ${

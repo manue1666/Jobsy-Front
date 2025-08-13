@@ -1,6 +1,7 @@
-import React from 'react';
-import { TextInput, TouchableOpacity, View, useColorScheme } from 'react-native';
+import React, { useContext } from 'react';
+import { TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeContext } from '@/context/themeContext';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -15,8 +16,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   onChangeText,
   onSearchPress
 }) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   return (
     <View className={`flex-row items-center rounded-full px-4 py-3 mx-4 mb-4 ${

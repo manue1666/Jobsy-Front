@@ -1,13 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  Alert,
-  ActivityIndicator,
-  useColorScheme,
-} from "react-native";
+import React, { useState, useEffect, useContext } from "react";
+import { View, Text, TouchableOpacity, Image, Alert, ActivityIndicator, } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -15,10 +7,11 @@ import { getUserProfile, updateUserProfile } from "../../helpers/profile";
 import { router, Stack } from "expo-router";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { FormInput } from "@/components/authComponents/FormInput";
+import { ThemeContext } from '@/context/themeContext';
 
 export default function EditProfileScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { currentTheme } = useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
   const [profileData, setProfileData] = useState<any>(null);
   const [name, setName] = useState("");
@@ -95,7 +88,7 @@ export default function EditProfileScreen() {
     Alert.alert("Datos actualizados", `Nombre: ${name}\nCorreo: ${email}`);
 
     try {
-      const userId = profileData?.user._id; 
+      const userId = profileData?.user._id;
       await updateUserProfile(
         userId,
         { name, email }, // Datos normales
@@ -104,15 +97,22 @@ export default function EditProfileScreen() {
       Alert.alert("Éxito", "Perfil actualizado");
       router.back();
     } catch (error) {
-        console.log(error)
-      Alert.alert("Error","error al actualizar los datos");
+      console.log(error)
+      Alert.alert("Error", "error al actualizar los datos");
     }
   };
 
   return (
-    <ScreenContainer>
+    <ScreenContainer dark={isDark}>
       <SafeAreaView className="flex-1 px-4">
-        <Stack.Screen options={{ title: "Editar perfil" }} />
+        <Stack.Screen
+          name="ChangeProfile"
+          options={{
+            title: 'Editar perfil',
+            headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" }, // Cambia el fondo del header
+            headerTintColor: isDark ? "#ffffff" : "#000000", // Cambia el color del texto y flecha
+          }}
+        />
         {loading ? (
           <ActivityIndicator size="large" color={isDark ? "white" : "black"} />
         ) : (

@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Image, Linking } from 'react-native';
-import { useColorScheme } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, Linking, Switch } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { Slider } from 'react-native-elements';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
+import { router } from 'expo-router';
+import { ThemeContext } from '@/context/themeContext';
 
 export default function ProfileScreen() {
-	const colorScheme = useColorScheme();
-	const isDark = colorScheme === 'dark';
-
+	const { currentTheme, toggleTheme, useSysTheme } = useContext(ThemeContext);
+	const isDark = currentTheme === 'dark';
 	const textColor = isDark ? 'text-white' : 'text-black';
 	const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
 	const cardBg = isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100';
@@ -37,13 +37,14 @@ export default function ProfileScreen() {
 			icon: (color: string) => <Feather name="flag" size={24} color={color} />,
 			title: 'Idioma',
 			subtitle: 'Cambiar el idioma de la app',
-			//onPress:
+			onPress: useSysTheme
 		},
 		{
 			icon: (color: string) => <Feather name="moon" size={24} color={color} />,
 			title: 'Modo oscuro',
 			subtitle: 'Cambia entre modos de vista',
-			//onPress:
+			toggle: false,
+			onPress: () => router.push('/opciones/tema')
 		},
 		{
 			icon: (color: string) => <Feather name="list" size={24} color={color} />,
@@ -93,6 +94,17 @@ export default function ProfileScreen() {
 										<View className="flex-1">
 											<Text className={`font-semibold ${textColor}`}>{option.title}</Text>
 
+											{option.toggle ? (
+												<View className="mt-1">
+													<Switch
+														value={currentTheme === "dark"}
+														onValueChange={() =>
+															toggleTheme(currentTheme === "light" ? "dark" : "light")
+														}
+													/>
+												</View>
+											) : ("")}
+
 											{option.hasSlider ? (
 												<View className="mt-1">
 													<Slider
@@ -101,13 +113,13 @@ export default function ProfileScreen() {
 														step={1}
 														value={searchRange}
 														onValueChange={setSearchRange}
-														minimumTrackTintColor= {Colors[colorScheme ?? 'light'].tint}
-														maximumTrackTintColor= {isDark ? "#ffffff" : "#000000"}
-														thumbTintColor= {Colors[colorScheme ?? 'light'].tint}
+														minimumTrackTintColor={Colors[currentTheme as keyof typeof Colors].tint}
+														maximumTrackTintColor={isDark ? "#ffffff" : "#000000"}
+														thumbTintColor={Colors[currentTheme as keyof typeof Colors].tint}
 														thumbStyle={{
 															height: 14,
 															width: 14,
-															backgroundColor: Colors[colorScheme ?? 'light'].tint,
+															backgroundColor: Colors[currentTheme as keyof typeof Colors].tint,
 															borderRadius: 7,
 														}}
 														trackStyle={{

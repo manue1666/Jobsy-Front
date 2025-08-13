@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, Text, TextInput, TextInputProps } from 'react-native';
-import { useColorScheme } from 'react-native';
+import { ThemeContext } from '@/context/themeContext';
 
 interface FormInputProps extends TextInputProps {
   label: string;
@@ -14,8 +14,8 @@ export function FormInput({
   isRequired = false, 
   ...textInputProps 
 }: FormInputProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+    const {currentTheme} = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
 
   return (
     <View className="mb-4">

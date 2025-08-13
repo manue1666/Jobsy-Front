@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { TouchableOpacity, View, Text, Image, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeContext } from '@/context/themeContext';
 
 interface FavoriteCardProps {
   id: string;
@@ -24,8 +25,8 @@ export const FavoriteCard: React.FC<FavoriteCardProps> = ({
   onPress
 }) => {
   const [favorite, setFavorite] = useState(isFavorite);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   const handleToggleFavorite = () => {
     const newFavoriteState = !favorite;

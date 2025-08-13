@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { TouchableOpacity, View, Text, Image, useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { ThemeContext } from '@/context/themeContext';
 
 interface OwnedServiceCardProps {
     id: string;
@@ -17,8 +18,8 @@ export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
     profilePic,
     onPress
 }) => {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const {currentTheme} = useContext(ThemeContext);
+    const isDark = currentTheme === 'dark';
 
     return (
         <TouchableOpacity

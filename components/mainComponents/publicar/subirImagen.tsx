@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { ThemeContext } from '@/context/themeContext';
 
 interface ImageUploadProps {
   maxImages?: number;
@@ -14,8 +15,8 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   onImagesChange 
 }) => {
   const [images, setImages] = useState<string[]>([]);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   const pickImage = async () => {
     if (images.length >= maxImages) {

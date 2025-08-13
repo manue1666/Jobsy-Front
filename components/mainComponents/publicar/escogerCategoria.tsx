@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   Modal,
   StyleSheet,
 } from "react-native";
-import { useColorScheme } from "react-native";
+import { ThemeContext } from '@/context/themeContext';
 
 export const CATEGORIES = [
   "tecnologia",
@@ -49,8 +49,8 @@ export function CategorySelector({
   selectedCategory,
   onCategoryChange,
 }: CategorySelectorProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+    const {currentTheme} = useContext(ThemeContext);
+    const isDark = currentTheme === "dark";
   const [modalVisible, setModalVisible] = useState(false);
 
   const renderCategoryItem = ({ item }: { item: string }) => (

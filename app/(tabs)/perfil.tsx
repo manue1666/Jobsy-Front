@@ -1,5 +1,5 @@
-import React, { useState, useCallback, } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, useColorScheme } from 'react-native';
+import React, { useState, useCallback, useContext, } from 'react';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { router } from 'expo-router';
@@ -7,12 +7,11 @@ import { Ionicons, MaterialIcons, Feather, Entypo } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { deleteUserProfile, getUserProfile } from '../../helpers/profile'; 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { navigate } from 'expo-router/build/global-state/routing';
+import { ThemeContext } from '@/context/themeContext';
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
   const textColor = isDark ? 'text-white' : 'text-black';
   const subtitleColor = isDark ? 'text-gray-400' : 'text-gray-500';
   const cardBg = isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white border border-gray-100';

@@ -1,9 +1,11 @@
+import { ThemeContext } from '@/context/themeContext';
 import { Tabs } from 'expo-router';
-import { useColorScheme, View, Text } from 'react-native';
+import { useContext } from 'react';
+import { View, Text } from 'react-native';
 
 export default function AuthLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   return (
     <Tabs

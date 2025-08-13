@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ScrollView, View, useColorScheme, Alert, RefreshControl, SafeAreaView } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
@@ -6,6 +6,7 @@ import { FavoriteCard } from '@/components/mainComponents/favoritos/favoritosCar
 import { removeFavorite } from '@/helpers/favorites';
 import { searchService } from '@/helpers/search_service';
 import { useRouter } from 'expo-router';
+import { ThemeContext } from '@/context/themeContext';
 
 interface FavoriteItem {
   id: string;
@@ -17,8 +18,8 @@ interface FavoriteItem {
 }
 
 export default function FavoritesScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

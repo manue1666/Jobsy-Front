@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
+import { ThemeContext } from '@/context/themeContext';
 
 interface ServiceType {
   id: string;
@@ -19,8 +20,8 @@ export const ServiceTypeSelector: React.FC<ServiceTypeSelectorProps> = ({
   allowMultiple = true 
 }) => {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   const serviceTypes: ServiceType[] = [
     { id: 'domicilio', label: 'A domicilio', icon: 'home-outline' },

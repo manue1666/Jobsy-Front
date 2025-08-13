@@ -1,11 +1,10 @@
 // app/profile/change-password.tsx
 
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
     Alert,
     TouchableOpacity,
     Text,
-    useColorScheme
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ScreenContainer } from '@/components/ScreenContainer';
@@ -13,10 +12,11 @@ import { FormCard } from "@/components/authComponents/FormCard";
 import { FormInput } from "@/components/authComponents/FormInput";
 import { Stack, router } from 'expo-router';
 import { getUserProfile, updateUserProfile } from '../../helpers/profile';
+import { ThemeContext } from '@/context/themeContext';
 
 export default function ChangePasswordScreen() {
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === 'dark';
+    const { currentTheme } = useContext(ThemeContext);
+    const isDark = currentTheme === 'dark';
 
     const [profileData, setProfileData] = useState<any>(null);
     const [currentPassword, setCurrentPassword] = useState('');
@@ -77,7 +77,14 @@ export default function ChangePasswordScreen() {
     return (
         <ScreenContainer>
             <SafeAreaView className="flex-1 px-4">
-                <Stack.Screen options={{ title: 'Cambiar contraseña' }} />
+                <Stack.Screen
+                    name="ChangePassword"
+                    options={{
+                        title: 'Cambiar contraseña',
+                        headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" }, // Cambia el fondo del header
+                        headerTintColor: isDark ? "#ffffff" : "#000000", // Cambia el color del texto y flecha
+                    }}
+                />
 
                 <FormCard title="Actualiza tu contraseña">
                     <FormInput

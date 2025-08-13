@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Alert,
   useColorScheme,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { getServiceById, Service } from "@/helpers/service_detail";
 import {
   FontAwesome,
@@ -18,23 +18,25 @@ import {
   Feather,
   Ionicons,
 } from "@expo/vector-icons";
+import { ThemeContext } from "@/context/themeContext";
 
 export default function ServiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const colorScheme = useColorScheme();
+  const { currentTheme } = useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
   // Colores dinámicos basados en el tema
-  const bgColor = colorScheme === 'dark' ? 'bg-gray-900' : 'bg-white';
-  const textColor = colorScheme === 'dark' ? 'text-gray-100' : 'text-gray-800';
-  const secondaryTextColor = colorScheme === 'dark' ? 'text-gray-300' : 'text-gray-600';
-  const cardBgColor = colorScheme === 'dark' ? 'bg-gray-800' : 'bg-gray-50';
-  const buttonSecondaryBg = colorScheme === 'dark' ? 'bg-gray-700' : 'bg-gray-200';
-  const buttonSecondaryText = colorScheme === 'dark' ? 'text-gray-200' : 'text-gray-700';
-  const tagBgColor = colorScheme === 'dark' ? 'bg-blue-900' : 'bg-blue-100';
-  const tagTextColor = colorScheme === 'dark' ? 'text-blue-200' : 'text-blue-800';
+  const bgColor = isDark ? 'bg-gray-900' : 'bg-white';
+  const textColor = isDark ? 'text-gray-100' : 'text-gray-800';
+  const secondaryTextColor = isDark ? 'text-gray-300' : 'text-gray-600';
+  const cardBgColor = isDark ? 'bg-gray-800' : 'bg-gray-50';
+  const buttonSecondaryBg = isDark ? 'bg-gray-700' : 'bg-gray-200';
+  const buttonSecondaryText = isDark ? 'text-gray-200' : 'text-gray-700';
+  const tagBgColor = isDark ? 'bg-blue-900' : 'bg-blue-100';
+  const tagTextColor = isDark ? 'text-blue-200' : 'text-blue-800';
 
   useEffect(() => {
     const fetchService = async () => {
@@ -201,7 +203,7 @@ export default function ServiceDetailScreen() {
             onPress={handleEmailPress}
             className={`${buttonSecondaryBg} py-3 px-6 rounded-full flex-row items-center justify-center mb-6`}
           >
-            <Feather name="mail" size={20} color={colorScheme === 'dark' ? '#E5E7EB' : '#4B5563'} />
+            <Feather name="mail" size={20} color={isDark ? '#E5E7EB' : '#4B5563'} />
             <Text className={`ml-2 ${buttonSecondaryText}`}>Enviar correo</Text>
           </TouchableOpacity>
         )}

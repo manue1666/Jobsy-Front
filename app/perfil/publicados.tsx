@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { ScrollView, View, useColorScheme, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { getUserServices } from '@/helpers/service';
 import { useRouter, Stack } from 'expo-router';
 import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
+import { ThemeContext } from '@/context/themeContext';
 
 interface myService {
   id: string;
@@ -21,8 +22,8 @@ export default function MainFeedScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   // Función para transformar los datos del API
   const transformServiceData = (apiServices: any[]): myService[] => {
@@ -79,62 +80,69 @@ export default function MainFeedScreen() {
 
 
   return (
-      <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} py-6`}>
-        <Stack.Screen options={{ title: 'Mis servicios' }} />
-        <ScrollView
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-            />
+    <ScreenContainer>
+      <Stack.Screen
+        name="MyServices"
+        options={{
+          title: 'Mis servicios',
+          headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" }, // Cambia el fondo del header
+          headerTintColor: isDark ? "#ffffff" : "#000000", // Cambia el color del texto y flecha
+        }}
+      />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
+        }
+        onScroll={({ nativeEvent }) => {
+          if (isCloseToBottom(nativeEvent)) {
+            handleLoadMore();
           }
-          onScroll={({ nativeEvent }) => {
-            if (isCloseToBottom(nativeEvent)) {
-              handleLoadMore();
-            }
-          }}
-          scrollEventThrottle={400}
-        >
+        }}
+        scrollEventThrottle={400}
+      >
 
-          {/* Service Feed */}
-          <View className="pb-6">
-            {/* Ejemplo de anuncio estático (similar al que tenías) */}
-            <ServiceFeedCard
-              id="ad-1"
-              title="GRANDES PROPUESTAS"
-              distance="Patrocinado"
-              personName="Burger King"
-              serviceImages={[
-                'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-                'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop'
-              ]}
-              description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
-              isFavorite={false}
-              isAd={true}
-              onPress={() => console.log('Anuncio presionado')}
+        {/* Service Feed */}
+        <View className="pb-6">
+          {/* Ejemplo de anuncio estático (similar al que tenías) */}
+          <ServiceFeedCard
+            id="ad-1"
+            title="GRANDES PROPUESTAS"
+            distance="Patrocinado"
+            personName="Burger King"
+            serviceImages={[
+              'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
+              'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop'
+            ]}
+            description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
+            isFavorite={false}
+            isAd={true}
+            onPress={() => console.log('Anuncio presionado')}
+          />
+          {/* Lista de servicios */}
+          {services.map((service) => (
+            <OwnedServiceCard
+              key={service.id}
+              id={service.id}
+              profilePic={service.profilePic}
+              title={service.title}
+              personName={service.personName}
+              onPress={() => handleServicePress(service.id)}
             />
-            {/* Lista de servicios */}
-            {services.map((service) => (
-              <OwnedServiceCard
-                key={service.id}
-                id={service.id}
-                profilePic={service.profilePic}
-                title={service.title}
-                personName={service.personName}
-                onPress={() => handleServicePress(service.id)}
-              />
-            ))}
+          ))}
 
-            {loading && page > 1 && (
-              <View className="py-4">
-                <ActivityIndicator size="small" />
-              </View>
-            )}
-          </View>
-        </ScrollView>
-      </View>
+          {loading && page > 1 && (
+            <View className="py-4">
+              <ActivityIndicator size="small" />
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </ScreenContainer>
   );
 }
 

@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
+import { ThemeContext } from '@/context/themeContext';
 
 interface ServiceFeedCardProps {
   id: string;
@@ -33,8 +33,8 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   onContactPress
 }) => {
   const [favorite, setFavorite] = useState(isFavorite);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === 'dark';
 
   const handleToggleFavorite = () => {
     const newFavoriteState = !favorite;

@@ -1,6 +1,6 @@
-import React from 'react';
+import { ThemeContext } from '@/context/themeContext';
+import React, { useContext } from 'react';
 import { SafeAreaView, StatusBar, ImageBackground, View, Platform } from 'react-native';
-import { useColorScheme } from 'react-native';
 
 interface ScreenContainerProps {
   children: React.ReactNode;
@@ -8,15 +8,16 @@ interface ScreenContainerProps {
   overlayOpacity?: number;
   contentClassName?: string;
   androidSafeArea?: boolean;
+  dark?: boolean;
 }
 
 export function ScreenContainer({ 
   children,
   contentClassName = '',
-  androidSafeArea = true
+  androidSafeArea = true,
 }: ScreenContainerProps) {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const {currentTheme} = useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
   const containerClasses = [
     'flex-1',
