@@ -1,5 +1,6 @@
 import api from '@/request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,7 +52,8 @@ export async function registerUser(
     headers: { 'Content-Type': 'application/json', "Accept": "application/json" }
   });
 
-  if (!response.data.success) {
+  
+  if (response.status!==201) {
 	  throw new Error(response.data.message || 'Error en el registro');
   }
 }
