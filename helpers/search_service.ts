@@ -88,3 +88,34 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
     throw error instanceof Error ? error : new Error('Error desconocido al buscar servicios');
   }
 };
+
+
+// helpers/search_service.ts
+
+export const getNearbyServices = async (coords: { longitude: number; latitude: number }) => {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) throw new Error('No autenticado');
+
+    const response = await api.get(`/service/nearby`, {
+      params: {
+        longitude: coords.longitude,
+        latitude: coords.latitude
+      },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Verificar estructura de respuesta
+    if (!Array.isArray(response.data)) {
+      throw new Error('Formato de respuesta inválido');
+    }
+
+    return response.data;
+    
+  } catch (error) {
+    console.error('Error al obtener servicios cercanos:', error);
+    throw error;
+  }
+};

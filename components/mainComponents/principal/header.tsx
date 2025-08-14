@@ -1,23 +1,36 @@
+// components/mainComponents/principal/header.tsx
 import React, { useContext } from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '@/context/themeContext';
 
+interface UserData {
+  name?: string;
+  profilePhoto?: string;
+}
+
 interface FeedHeaderProps {
-  userName?: string;
-  userImage?: string;
+  userData?: UserData;
   onProfilePress?: () => void;
-  onNotificationsPress?: () => void;
+  onNearbyPress?: () => void;
+  loading?: boolean;
 }
 
 export const FeedHeader: React.FC<FeedHeaderProps> = ({
-  userName = "Gabriel",
-  userImage = "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-  onProfilePress,
-  onNotificationsPress
+  userData,
+  onProfilePress = () => {},
+  onNearbyPress = () => {},
+  loading = false
 }) => {
-  const {currentTheme} = useContext(ThemeContext);
+  const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
+
+  // Valores por defecto seguros
+  const safeUserData = {
+    name: 'Usuario',
+    profilePhoto: 'https://via.placeholder.com/150',
+    ...userData
+  };
 
   return (
     <View className={`flex-row items-center justify-between px-4 py-4 ${
@@ -30,29 +43,34 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
         activeOpacity={0.7}
       >
         <Image
-          source={{ uri: userImage }}
+          source={{ uri: safeUserData.profilePhoto }}
           className="w-12 h-12 rounded-full mr-3"
         />
         <Text className={`text-xl font-bold ${
           isDark ? 'text-gray-100' : 'text-gray-900'
         }`}>
-          Hola, {userName}!
+          Hola, {safeUserData.name}!
         </Text>
       </TouchableOpacity>
 
-      {/* Right side - Notifications */}
+      {/* Right side - Nearby Services */}
       <TouchableOpacity
-        onPress={onNotificationsPress}
+        onPress={onNearbyPress}
         className={`p-2 rounded-full ${
           isDark ? 'bg-gray-800' : 'bg-gray-100'
         }`}
         activeOpacity={0.7}
+        disabled={loading}
       >
-        <Ionicons
-          name="notifications-outline"
-          size={24}
-          color={isDark ? '#E5E7EB' : '#374151'}
-        />
+        {loading ? (
+          <ActivityIndicator size="small" color={isDark ? '#E5E7EB' : '#374151'} />
+        ) : (
+          <Ionicons
+            name="location-outline"
+            size={24}
+            color={isDark ? '#E5E7EB' : '#374151'}
+          />
+        )}
       </TouchableOpacity>
     </View>
   );
