@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Alert, Text } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
@@ -9,7 +9,7 @@ import { ServiceTypeSelector } from "@/components/mainComponents/publicar/escoge
 import { LocationInput } from "@/components/mainComponents/publicar/escogerLocalizacion";
 import { CategorySelector } from "@/components/mainComponents/publicar/escogerCategoria";
 import { createService } from "@/helpers/service";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 
 interface ServiceData {
   images: string[];
@@ -117,6 +117,24 @@ export default function PublicarScreen() {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      // Reseteo de todos los estados
+      setIsLoading(false);
+      setServiceData({
+        images: [],
+        serviceName: "",
+        description: "",
+        address: "",
+        phone: "",
+        email: "",
+        serviceTypes: [],
+      });
+      setErrors({});
+      setSelectedCategory("");
+    }, [])
+  );
 
   return (
     <ScreenContainer>

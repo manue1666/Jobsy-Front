@@ -19,6 +19,8 @@ export const getUserLocation = async () => {
       accuracy: Location.Accuracy.High,
     });
 
+    console.log("ubicacion actual: ", location.coords.latitude, location.coords.longitude);
+
     return {
       latitude: location.coords.latitude,
       longitude: location.coords.longitude,

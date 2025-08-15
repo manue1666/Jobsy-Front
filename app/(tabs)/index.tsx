@@ -13,7 +13,7 @@ import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFe
 import { getNearbyServices, searchService } from '@/helpers/search_service';
 import { addFavorite, removeFavorite } from '@/helpers/favorites';
 import { getUserProfile } from '@/helpers/profile';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { getUserLocation } from '@/helpers/location';
 
 interface ServicePost {
@@ -52,20 +52,20 @@ export default function MainFeedScreen() {
   const router = useRouter();
 
   // Función para transformar los datos del API
-const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => {
-  return apiServices.map(service => ({
-    id: service._id,
-    title: service.service_name,
-    distance: calculateDistance(service.service_location?.coordinates || [0, 0]),
-    personName: service.user?.name || service.user_id?.name || 'Anónimo',
-    serviceImages: service.photos?.length > 0 ? service.photos : [
-      'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop'
-    ],
-    description: service.description,
-    isFavorite: service.isFavorite || false,
-    category: service.category,
-  }));
-}, []);
+  const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => {
+    return apiServices.map(service => ({
+      id: service._id,
+      title: service.service_name,
+      distance: calculateDistance(service.service_location?.coordinates || [0, 0]),
+      personName: service.user?.name || service.user_id?.name || 'Anónimo',
+      serviceImages: service.photos?.length > 0 ? service.photos : [
+        'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop'
+      ],
+      description: service.description,
+      isFavorite: service.isFavorite || false,
+      category: service.category,
+    }));
+  }, []);
 
   // Función de ejemplo para calcular distancia (simulada)
   const calculateDistance = useCallback((coordinates: number[]): string => {
@@ -96,7 +96,7 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
         limit: 10,
       });
 
-      setServices(prev => 
+      setServices(prev =>
         pageNum === 1
           ? transformServiceData(result.services)
           : [...prev, ...transformServiceData(result.services)]
@@ -119,10 +119,10 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
         await addFavorite(serviceId);
       }
 
-      setServices(prevServices => 
-        prevServices.map(service => 
-          service.id === serviceId 
-            ? { ...service, isFavorite: !isCurrentlyFavorite } 
+      setServices(prevServices =>
+        prevServices.map(service =>
+          service.id === serviceId
+            ? { ...service, isFavorite: !isCurrentlyFavorite }
             : service
         )
       );
@@ -159,10 +159,13 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
     profilePhoto: profileData?.user?.profilePhoto || 'https://via.placeholder.com/150'
   }), [profileData]);
 
-  useEffect(() => {
-    loadProfileData();
-    fetchServices();
-  }, [loadProfileData, fetchServices]);
+  // Actualizar automaticamente
+  useFocusEffect(
+    useCallback(() => {
+      loadProfileData();
+      fetchServices();
+    }, [loadProfileData, fetchServices])
+  );
 
   if (loading && page === 1) {
     return (
@@ -180,12 +183,12 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
         className="flex-1"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing} 
+          <RefreshControl
+            refreshing={isRefreshing}
             onRefresh={() => {
               setIsRefreshing(true);
               fetchServices(1, searchText);
-            }} 
+            }}
           />
         }
         onScroll={({ nativeEvent }) => {

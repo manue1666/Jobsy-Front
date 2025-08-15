@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import { ScrollView, View, useColorScheme, Alert, RefreshControl, SafeAreaView } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FavoriteCard } from '@/components/mainComponents/favoritos/favoritosCard';
 import { removeFavorite } from '@/helpers/favorites';
 import { searchService } from '@/helpers/search_service';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { ThemeContext } from '@/context/themeContext';
 
 interface FavoriteItem {
@@ -18,7 +18,7 @@ interface FavoriteItem {
 }
 
 export default function FavoritesScreen() {
-  const {currentTheme} = useContext(ThemeContext);
+  const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [page, setPage] = useState(1);
@@ -90,7 +90,7 @@ export default function FavoritesScreen() {
     fetchFavorites(1, searchText);
   };
 
-    const handleServicePress = (serviceId: string) => {
+  const handleServicePress = (serviceId: string) => {
     console.log('View service details:', serviceId);
     router.push(`/servicio/${serviceId}`)
   };
@@ -112,53 +112,55 @@ export default function FavoritesScreen() {
     }
   };
 
-  // Efecto inicial para cargar datos
-  useEffect(() => {
-    fetchFavorites();
-  }, []);
+  // Efecto inicial para cargar datos y actualizacion automatica
+  useFocusEffect(
+    useCallback(() => {
+      fetchFavorites();
+    }, [])
+  );
 
   return (
     <ScreenContainer>
-        <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} py-6`}>
-          <SearchBar
-            placeholder="Buscar favoritos..."
-            value={searchText}
-            onChangeText={setSearchText}
-            onSearchPress={handleSearch}
-          />
+      <View className={`flex-1 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} py-6`}>
+        <SearchBar
+          placeholder="Buscar favoritos..."
+          value={searchText}
+          onChangeText={setSearchText}
+          onSearchPress={handleSearch}
+        />
 
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
+        <ScrollView
+          className="flex-1"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+            />
+          }
+          onScroll={({ nativeEvent }) => {
+            if (isCloseToBottom(nativeEvent)) {
+              handleLoadMore();
             }
-            onScroll={({ nativeEvent }) => {
-              if (isCloseToBottom(nativeEvent)) {
-                handleLoadMore();
-              }
-            }}
-            scrollEventThrottle={400}
-          >
-            {filteredFavorites.map((item) => (
-              <FavoriteCard
-                key={item.id}
-                id={item.id}
-                title={item.title}
-                distance={item.distance}
-                personName={item.personName}
-                profilePic={item.profilePic}
-                isFavorite={item.isFavorite}
-                onToggleFavorite={handleToggleFavorite}
-                onPress={() => handleServicePress(item.id)}
-              />
-            ))}
-          </ScrollView>
-        </View>
+          }}
+          scrollEventThrottle={400}
+        >
+          {filteredFavorites.map((item) => (
+            <FavoriteCard
+              key={item.id}
+              id={item.id}
+              title={item.title}
+              distance={item.distance}
+              personName={item.personName}
+              profilePic={item.profilePic}
+              isFavorite={item.isFavorite}
+              onToggleFavorite={handleToggleFavorite}
+              onPress={() => handleServicePress(item.id)}
+            />
+          ))}
+        </ScrollView>
+      </View>
     </ScreenContainer>
   );
 }
