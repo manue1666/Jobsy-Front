@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import "@/global.css"
+import { SearchRangeProvider } from '@/context/searchRangeContext';
 import ThemeProvider from '@/context/themeContext';
 
 export {
@@ -66,11 +67,13 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider>
+      <SearchRangeProvider>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
 
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
+      </SearchRangeProvider>
     </ThemeProvider>
   );
 }

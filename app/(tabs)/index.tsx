@@ -15,6 +15,7 @@ import { addFavorite, removeFavorite } from '@/helpers/favorites';
 import { getUserProfile } from '@/helpers/profile';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getUserLocation } from '@/helpers/location';
+import { useSearchRange } from "@/context/searchRangeContext";
 
 interface ServicePost {
   id: string;
@@ -50,6 +51,7 @@ export default function MainFeedScreen() {
   const [profileData, setProfileData] = useState<UserProfile | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const router = useRouter();
+  const { searchRange } = useSearchRange();
 
   // Función para transformar los datos del API
   const transformServiceData = useCallback(
@@ -183,7 +185,7 @@ export default function MainFeedScreen() {
       const coords = await getUserLocation();
       if (!coords) return;
 
-      const nearbyServices = await getNearbyServices(coords);
+      const nearbyServices = await getNearbyServices(coords, searchRange);
       setServices(transformServiceData(nearbyServices));
     } catch (error: any) {
       Alert.alert(
@@ -202,7 +204,7 @@ export default function MainFeedScreen() {
     } finally {
       setLocationLoading(false);
     }
-  }, [transformServiceData]);
+  }, [transformServiceData, searchRange]);
 
   const handleLoadMore = useCallback(() => {
     if (page < totalPages && !loading) {

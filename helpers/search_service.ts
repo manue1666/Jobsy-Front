@@ -46,7 +46,7 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
 
     // Construir query params
     const queryParams = new URLSearchParams();
-    
+
     if (params?.query) queryParams.append('query', params.query);
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
@@ -70,20 +70,20 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
 
   } catch (error: any) {
     console.error('Error en searchService:', error);
-    
+
     // Manejo de errores de Axios
     if (error.isAxiosError) {
       if (!error.response) {
         throw new Error('Error de conexión con el servidor');
       }
-      
-      const serverMessage = error.response.data?.error || 
-                          error.response.data?.message ||
-                          `Error del servidor: ${error.response.status}`;
-      
+
+      const serverMessage = error.response.data?.error ||
+        error.response.data?.message ||
+        `Error del servidor: ${error.response.status}`;
+
       throw new Error(serverMessage);
     }
-    
+
     // Relanzar otros errores
     throw error instanceof Error ? error : new Error('Error desconocido al buscar servicios');
   }
@@ -92,7 +92,7 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
 
 // helpers/search_service.ts
 
-export const getNearbyServices = async (coords: { longitude: number; latitude: number }) => {
+export const getNearbyServices = async (coords: { longitude: number; latitude: number }, maxDistance?: number) => {
   try {
     const token = await AsyncStorage.getItem('token');
     if (!token) throw new Error('No autenticado');
@@ -100,7 +100,8 @@ export const getNearbyServices = async (coords: { longitude: number; latitude: n
     const response = await api.get(`/service/nearby`, {
       params: {
         longitude: coords.longitude,
-        latitude: coords.latitude
+        latitude: coords.latitude,
+        maxDistance: maxDistance ? maxDistance * 1000 : undefined, // convertir km a m
       },
       headers: {
         Authorization: `Bearer ${token}`,
@@ -113,7 +114,7 @@ export const getNearbyServices = async (coords: { longitude: number; latitude: n
     }
 
     return response.data;
-    
+
   } catch (error) {
     console.error('Error al obtener servicios cercanos:', error);
     throw error;

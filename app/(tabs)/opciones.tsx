@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Colors from '@/constants/Colors';
 import { router } from 'expo-router';
 import { ThemeContext } from '@/context/themeContext';
+import { useSearchRange } from '@/context/searchRangeContext';
 
 export default function ProfileScreen() {
 	const { currentTheme, toggleTheme, useSysTheme } = useContext(ThemeContext);
@@ -19,7 +20,7 @@ export default function ProfileScreen() {
 	}
 	const [appData, setAppData] = useState<AppData | null>(null);
 	const [loading, setLoading] = useState(true);
-	const [searchRange, setSearchRange] = useState(10); // valor inicial en km
+	const { searchRange, setSearchRange } = useSearchRange();
 
 
 	//Llamada a la API simulada para carga de datos
