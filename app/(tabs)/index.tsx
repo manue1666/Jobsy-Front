@@ -80,7 +80,13 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       const data = await getUserProfile();
       setProfileData(data);
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Error al obtener el perfil');
+      Alert.alert('Error',err.message || 'Error al obtener el perfil',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,7 +110,13 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       setTotalPages(result.pages);
       setPage(pageNum);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Error al cargar servicios');
+      Alert.alert('Error',error.message || 'Error al cargar servicios',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -128,7 +140,13 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       );
     } catch (error: any) {
       console.error('Error al actualizar favorito:', error);
-      Alert.alert('Error', error.message || 'No se pudo actualizar el favorito');
+      Alert.alert('Error', error.message || 'No se pudo actualizar el favorito',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     }
   }, []);
 
@@ -141,7 +159,13 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       const nearbyServices = await getNearbyServices(coords);
       setServices(transformServiceData(nearbyServices));
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'No se pudieron cargar servicios cercanos');
+      Alert.alert('Error',error.message || 'No se pudieron cargar servicios cercanos',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       console.error(error);
     } finally {
       setLocationLoading(false);

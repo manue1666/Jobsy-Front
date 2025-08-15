@@ -36,7 +36,13 @@ export default function ChangePasswordScreen() {
                 setProfileData(data);
             }
         } catch (err: any) {
-            Alert.alert('Error', err.message || 'Error al obtener el perfil');
+            Alert.alert('Error',err.message || 'Error al obtener el perfil',[
+                {
+                    text : 'OK'
+                }
+              ], {
+                cancelable : true
+              });
             console.log(err);
         }
     };
@@ -62,14 +68,26 @@ export default function ChangePasswordScreen() {
             };
             await updateUserProfile(userId, updatePayload);
 
-            Alert.alert('Éxito', 'Contraseña actualizada correctamente');
+            Alert.alert('Éxito','Contraseña actualizada correctamente',[
+                {
+                    text : 'OK'
+                }
+              ], {
+                cancelable : true
+              });
             router.back();
         } catch (error: any) {
             const msg = error.message || '';
             if (msg.includes('contraseña actual')) {
                 setErrors({ currentPassword: 'Contraseña actual incorrecta' });
             } else {
-                Alert.alert('Error', msg || 'No se pudo actualizar la contraseña');
+                Alert.alert('Error',msg || 'No se pudo actualizar la contraseña',[
+                    {
+                        text : 'OK'
+                    }
+                  ], {
+                    cancelable : true
+                  });
             }
         }
     };

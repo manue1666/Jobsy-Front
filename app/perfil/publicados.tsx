@@ -46,7 +46,13 @@ export default function MainFeedScreen() {
       setTotalPages(result.pages);
       setPage(pageNum);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Error al cargar servicios');
+      Alert.alert('Error',error.message || 'Error al cargar servicios',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     } finally {
       setLoading(false);
       setIsRefreshing(false);

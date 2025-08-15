@@ -27,11 +27,23 @@ export default function RegistroScreen() {
       try {
         await registerUser(name, email, password);
         router.replace('/(auth)');
-        Alert.alert("Éxito", "Registro completado. Ahora puedes iniciar sesión");
+        Alert.alert('Éxito','Registro completado. Ahora puedes iniciar sesión',[
+          {
+            text : 'OK'
+          }
+          ], {
+          cancelable : true
+          });
         console.log("Usuario registrado exitosamente")
       } catch (err: any) {
         // err.message vendrá de nuestros “throw new Error()”
-        Alert.alert('Error', err.message || 'Error al registrar usuario');
+        Alert.alert('Error',err.message || 'Error al registrar usuario',[
+          {
+            text : 'OK'
+          }
+          ], {
+          cancelable : true
+          });
         console.log(err);
       } finally {
         setLoading(false);
