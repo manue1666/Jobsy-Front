@@ -100,10 +100,22 @@ export default function PublicarScreen() {
         serviceData.images // Pasa las URIs de las imágenes
       );
 
-      Alert.alert("Éxito", "Servicio publicado");
+      Alert.alert('Éxito','Servicio publicado',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       router.replace("/(tabs)");
     } catch (error) {
-      Alert.alert("Error", "error al crear servicio");
+      Alert.alert('Error','error al crear servicio',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     } finally {
       setIsLoading(false);
     }

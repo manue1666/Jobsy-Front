@@ -63,7 +63,13 @@ export default function FavoritesScreen() {
       setTotalPages(result.pages);
       setPage(pageNum);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Error al cargar servicios');
+      Alert.alert('Error',error.message || 'Error al cargar servicios',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -82,7 +88,13 @@ export default function FavoritesScreen() {
       );
     } catch (error) {
       console.error('Error al marcar como favorito:', error);
-      Alert.alert('Error', 'No se pudo actualizar el favorito');
+      Alert.alert('Error','No se pudo actualizar el favorito',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     }
   };
 

@@ -7,10 +7,13 @@ export const getUserLocation = async () => {
     // 1. Pedir permisos
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert(
-        'Permisos requeridos',
-        'Necesitamos acceso a tu ubicación para mostrar servicios cercanos'
-      );
+      Alert.alert('Permisos requeridos','Necesitamos acceso a tu ubicación para mostrar servicios cercanos',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       return null;
     }
 
@@ -27,7 +30,13 @@ export const getUserLocation = async () => {
     };
   } catch (error) {
     console.error('Error al obtener ubicación:', error);
-    Alert.alert('Error', 'No se pudo obtener tu ubicación');
+    Alert.alert('Error','No se pudo obtener tu ubicación',[
+      {
+        text : 'OK'
+      }
+      ], {
+      cancelable : true
+      });
     return null;
   }
 };

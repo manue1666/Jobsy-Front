@@ -35,7 +35,13 @@ export default function ProfileScreen() {
       setProfileData(data);
       return data;
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Error al obtener el perfil');
+      Alert.alert('Error',err.message || 'Error al obtener el perfil',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       console.log(err);
       return null;
     } finally {
@@ -62,7 +68,13 @@ export default function ProfileScreen() {
       );
     }
     catch (err: any) {
-      Alert.alert('Error', err.message || 'No se pudo eliminar la cuenta');
+      Alert.alert('Error', err.message || 'No se pudo eliminar la cuenta',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       console.log(err);
     }
   };

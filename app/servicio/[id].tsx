@@ -64,7 +64,13 @@ export default function ServiceDetailScreen() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert("Error", "No se pudo abrir WhatsApp");
+        Alert.alert('Error','No se pudo abrir WhatsApp',[
+          {
+            text : 'OK'
+          }
+          ], {
+          cancelable : true
+          });
       }
     });
   }, [service?.phone]);

@@ -25,7 +25,13 @@ export default function LoginScreen() {
       router.replace('/(tabs)');
     } catch (err: any) {
       // err.message vendrá de nuestros “throw new Error()”
-      Alert.alert('Error', err.message || 'Error al iniciar sesión');
+	  Alert.alert('Error',err.message || 'Error al iniciar sesión',[
+		{
+			text : 'OK'
+		}
+	  ], {
+		cancelable : true
+	  });
       console.log(err);
     } finally {
       setLoading(false);

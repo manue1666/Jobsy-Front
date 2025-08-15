@@ -25,10 +25,13 @@ export default function EditProfileScreen() {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permiso requerido",
-          "Se necesita acceso a la galería para cambiar la imagen."
-        );
+        Alert.alert('Permiso requerido','Se necesita acceso a la galería para cambiar la imagen',[
+          {
+            text : 'OK'
+          }
+          ], {
+          cancelable : true
+          });
       }
 
       loadProfileData();
@@ -46,7 +49,13 @@ export default function EditProfileScreen() {
         setImageUri(data.user.profilePhoto || "");
       }
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Error al obtener el perfil");
+      Alert.alert('Error',err.message || "Error al obtener el perfil",[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       console.log(err);
     } finally {
       setLoading(false);
@@ -85,7 +94,13 @@ export default function EditProfileScreen() {
     }
 
     setErrors({});
-    Alert.alert("Datos actualizados", `Nombre: ${name}\nCorreo: ${email}`);
+    Alert.alert('Datos actualizados',`Nombre: ${name}\nCorreo: ${email}`,[
+      {
+        text : 'OK'
+      }
+      ], {
+      cancelable : true
+      });
 
     try {
       const userId = profileData?.user._id;
@@ -94,11 +109,23 @@ export default function EditProfileScreen() {
         { name, email }, // Datos normales
         imageUri !== profileData?.user.profilePhoto ? imageUri : null // Solo si es nueva imagen
       );
-      Alert.alert("Éxito", "Perfil actualizado");
+      Alert.alert('Éxito','Perfil actualizado',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
       router.back();
     } catch (error) {
       console.log(error)
-      Alert.alert("Error", "error al actualizar los datos");
+      Alert.alert('Error','error al actualizar los datos',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
     }
   };
 
