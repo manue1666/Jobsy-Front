@@ -1,36 +1,36 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ScrollView,
   View,
   RefreshControl,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { ScreenContainer } from '@/components/ScreenContainer';
-import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
-import { FeedHeader } from '@/components/mainComponents/principal/header';
-import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
-import { getNearbyServices, searchService } from '@/helpers/search_service';
-import { addFavorite, removeFavorite } from '@/helpers/favorites';
-import { getUserProfile } from '@/helpers/profile';
-import { useRouter } from 'expo-router';
-import { getUserLocation } from '@/helpers/location';
+} from "react-native";
+import { ScreenContainer } from "@/components/ScreenContainer";
+import { SearchBar } from "@/components/mainComponents/favoritos/searchBar";
+import { FeedHeader } from "@/components/mainComponents/principal/header";
+import { ServiceFeedCard } from "@/components/mainComponents/principal/ServiceFeedCard";
+import { getNearbyServices, searchService } from "@/helpers/search_service";
+import { addFavorite, removeFavorite } from "@/helpers/favorites";
+import { getUserProfile } from "@/helpers/profile";
+import { useRouter } from "expo-router";
+import { getUserLocation } from "@/helpers/location";
 
 interface ServicePost {
   id: string;
   title: string;
-  distance: string;
+  address: string; // Nuevo campo
+  category: string; // Movido aquí para mejor acceso
   personName: string;
   serviceImages: string[];
   description: string;
   isFavorite: boolean;
-  category: string;
-  user?: { // Nueva propiedad para mayor flexibilidad
+  user?: {
     _id: string;
     name: string;
     profilePhoto?: string;
   };
-  user_id?: any; // Mantener por compatibilidad
+  user_id?: any;
 }
 
 interface UserProfile {
@@ -41,7 +41,7 @@ interface UserProfile {
 }
 
 export default function MainFeedScreen() {
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [services, setServices] = useState<ServicePost[]>([]);
   const [page, setPage] = useState(1);
@@ -52,20 +52,26 @@ export default function MainFeedScreen() {
   const router = useRouter();
 
   // Función para transformar los datos del API
-const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => {
-  return apiServices.map(service => ({
-    id: service._id,
-    title: service.service_name,
-    distance: calculateDistance(service.service_location?.coordinates || [0, 0]),
-    personName: service.user?.name || service.user_id?.name || 'Anónimo',
-    serviceImages: service.photos?.length > 0 ? service.photos : [
-      'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop'
-    ],
-    description: service.description,
-    isFavorite: service.isFavorite || false,
-    category: service.category,
-  }));
-}, []);
+  const transformServiceData = useCallback(
+    (apiServices: any[]): ServicePost[] => {
+      return apiServices.map((service) => ({
+        id: service._id,
+        title: service.service_name,
+        address: service.address || "Dirección no disponible",
+        category: service.category,
+        personName: service.user?.name || service.user_id?.name || "Anónimo",
+        serviceImages:
+          service.photos?.length > 0
+            ? service.photos
+            : [
+                "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
+              ],
+        description: service.description,
+        isFavorite: service.isFavorite || false,
+      }));
+    },
+    []
+  );
 
   // Función de ejemplo para calcular distancia (simulada)
   const calculateDistance = useCallback((coordinates: number[]): string => {
@@ -80,75 +86,96 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       const data = await getUserProfile();
       setProfileData(data);
     } catch (err: any) {
-      Alert.alert('Error',err.message || 'Error al obtener el perfil',[
+      Alert.alert(
+        "Error",
+        err.message || "Error al obtener el perfil",
+        [
+          {
+            text: "OK",
+          },
+        ],
         {
-          text : 'OK'
+          cancelable: true,
         }
-        ], {
-        cancelable : true
-        });
+      );
       console.error(err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchServices = useCallback(async (pageNum = 1, searchQuery = '') => {
-    try {
-      setLoading(true);
-      const result = await searchService({
-        query: searchQuery,
-        page: pageNum,
-        limit: 10,
-      });
-
-      setServices(prev => 
-        pageNum === 1
-          ? transformServiceData(result.services)
-          : [...prev, ...transformServiceData(result.services)]
-      );
-      setTotalPages(result.pages);
-      setPage(pageNum);
-    } catch (error: any) {
-      Alert.alert('Error',error.message || 'Error al cargar servicios',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
+  const fetchServices = useCallback(
+    async (pageNum = 1, searchQuery = "") => {
+      try {
+        setLoading(true);
+        const result = await searchService({
+          query: searchQuery,
+          page: pageNum,
+          limit: 10,
         });
-    } finally {
-      setLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [transformServiceData]);
 
-  const handleToggleFavorite = useCallback(async (serviceId: string, isCurrentlyFavorite: boolean) => {
-    try {
-      if (isCurrentlyFavorite) {
-        await removeFavorite(serviceId);
-      } else {
-        await addFavorite(serviceId);
+        setServices((prev) =>
+          pageNum === 1
+            ? transformServiceData(result.services)
+            : [...prev, ...transformServiceData(result.services)]
+        );
+        setTotalPages(result.pages);
+        setPage(pageNum);
+      } catch (error: any) {
+        Alert.alert(
+          "Error",
+          error.message || "Error al cargar servicios",
+          [
+            {
+              text: "OK",
+            },
+          ],
+          {
+            cancelable: true,
+          }
+        );
+      } finally {
+        setLoading(false);
+        setIsRefreshing(false);
       }
+    },
+    [transformServiceData]
+  );
 
-      setServices(prevServices => 
-        prevServices.map(service => 
-          service.id === serviceId 
-            ? { ...service, isFavorite: !isCurrentlyFavorite } 
-            : service
-        )
-      );
-    } catch (error: any) {
-      console.error('Error al actualizar favorito:', error);
-      Alert.alert('Error', error.message || 'No se pudo actualizar el favorito',[
-        {
-          text : 'OK'
+  const handleToggleFavorite = useCallback(
+    async (serviceId: string, isCurrentlyFavorite: boolean) => {
+      try {
+        if (isCurrentlyFavorite) {
+          await removeFavorite(serviceId);
+        } else {
+          await addFavorite(serviceId);
         }
-        ], {
-        cancelable : true
-        });
-    }
-  }, []);
+
+        setServices((prevServices) =>
+          prevServices.map((service) =>
+            service.id === serviceId
+              ? { ...service, isFavorite: !isCurrentlyFavorite }
+              : service
+          )
+        );
+      } catch (error: any) {
+        console.error("Error al actualizar favorito:", error);
+        Alert.alert(
+          "Error",
+          error.message || "No se pudo actualizar el favorito",
+          [
+            {
+              text: "OK",
+            },
+          ],
+          {
+            cancelable: true,
+          }
+        );
+      }
+    },
+    []
+  );
 
   const handleNearbyPress = useCallback(async () => {
     try {
@@ -159,13 +186,18 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
       const nearbyServices = await getNearbyServices(coords);
       setServices(transformServiceData(nearbyServices));
     } catch (error: any) {
-      Alert.alert('Error',error.message || 'No se pudieron cargar servicios cercanos',[
+      Alert.alert(
+        "Error",
+        error.message || "No se pudieron cargar servicios cercanos",
+        [
+          {
+            text: "OK",
+          },
+        ],
         {
-          text : 'OK'
+          cancelable: true,
         }
-        ], {
-        cancelable : true
-        });
+      );
       console.error(error);
     } finally {
       setLocationLoading(false);
@@ -178,10 +210,14 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
     }
   }, [page, totalPages, loading, searchText, fetchServices]);
 
-  const getSafeUserData = useCallback(() => ({
-    name: profileData?.user?.name || 'Usuario',
-    profilePhoto: profileData?.user?.profilePhoto || 'https://via.placeholder.com/150'
-  }), [profileData]);
+  const getSafeUserData = useCallback(
+    () => ({
+      name: profileData?.user?.name || "Usuario",
+      profilePhoto:
+        profileData?.user?.profilePhoto || "https://via.placeholder.com/150",
+    }),
+    [profileData]
+  );
 
   useEffect(() => {
     loadProfileData();
@@ -204,12 +240,12 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
         className="flex-1"
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl 
-            refreshing={isRefreshing} 
+          <RefreshControl
+            refreshing={isRefreshing}
             onRefresh={() => {
               setIsRefreshing(true);
               fetchServices(1, searchText);
-            }} 
+            }}
           />
         }
         onScroll={({ nativeEvent }) => {
@@ -222,7 +258,7 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
         {/* Header con la estructura correcta */}
         <FeedHeader
           userData={getSafeUserData()}
-          onProfilePress={() => router.push('/perfil')}
+          onProfilePress={() => router.push("/perfil")}
           onNearbyPress={handleNearbyPress}
           loading={locationLoading}
         />
@@ -239,7 +275,8 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
           <ServiceFeedCard
             id="ad-1"
             title="GRANDES PROPUESTAS"
-            distance="Patrocinado"
+            address="Patrocinado"
+            category="Anuncio"
             personName="Burger King"
             serviceImages={[
               "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
@@ -257,12 +294,15 @@ const transformServiceData = useCallback((apiServices: any[]): ServicePost[] => 
               key={service.id}
               id={service.id}
               title={service.title}
-              distance={service.distance}
+              address={service.address} // Usar la dirección del servicio
+              category={service.category} // Mostrar la categoría
               personName={service.personName}
               serviceImages={service.serviceImages}
               description={service.description}
               isFavorite={service.isFavorite}
-              onToggleFavorite={() => handleToggleFavorite(service.id, service.isFavorite)}
+              onToggleFavorite={() =>
+                handleToggleFavorite(service.id, service.isFavorite)
+              }
               onPress={() => router.push(`/servicio/${service.id}`)}
             />
           ))}
