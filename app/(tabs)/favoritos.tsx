@@ -163,7 +163,6 @@ export default function FavoritesScreen() {
               key={item.id}
               id={item.id}
               title={item.title}
-              distance={item.distance}
               personName={item.personName}
               profilePic={item.profilePic}
               isFavorite={item.isFavorite}

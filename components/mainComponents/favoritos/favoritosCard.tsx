@@ -6,7 +6,6 @@ import { ThemeContext } from '@/context/themeContext';
 interface FavoriteCardProps {
   id: string;
   title: string;
-  distance: string;
   personName: string;
   profilePic: string;
   isFavorite?: boolean;
@@ -17,7 +16,6 @@ interface FavoriteCardProps {
 export const FavoriteCard: React.FC<FavoriteCardProps> = ({
   id,
   title,
-  distance,
   personName,
   profilePic,
   isFavorite = true,
@@ -68,7 +66,7 @@ export const FavoriteCard: React.FC<FavoriteCardProps> = ({
               <Text className={`text-sm ${
                 isDark ? 'text-gray-400' : 'text-gray-500'
               }`}>
-                {distance}
+                
               </Text>
             </View>
           </View>

@@ -75,11 +75,6 @@ export default function MainFeedScreen() {
     []
   );
 
-  // Función de ejemplo para calcular distancia (simulada)
-  const calculateDistance = useCallback((coordinates: number[]): string => {
-    const distance = Math.floor(Math.random() * 10) + 1;
-    return `${distance}km`;
-  }, []);
 
   // Método para cargar info del usuario activo
   const loadProfileData = useCallback(async () => {
