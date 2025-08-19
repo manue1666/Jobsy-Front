@@ -9,6 +9,7 @@ interface OwnedServiceCardProps {
     personName: string;
     profilePic: string;
     onPress?: () => void;
+    onLongPress?: () => void;
 }
 
 export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
@@ -16,7 +17,8 @@ export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
     title,
     personName,
     profilePic,
-    onPress
+    onPress,
+    onLongPress
 }) => {
     const {currentTheme} = useContext(ThemeContext);
     const isDark = currentTheme === 'dark';
@@ -24,6 +26,7 @@ export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
     return (
         <TouchableOpacity
             onPress={onPress}
+            onLongPress={onLongPress}
             className={`rounded-2xl mx-4 mb-3 p-4 shadow-sm ${isDark
                     ? 'bg-gray-800 border border-gray-700'
                     : 'bg-white border border-gray-100'

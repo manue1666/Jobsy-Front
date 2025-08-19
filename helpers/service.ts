@@ -85,3 +85,32 @@ export async function getUserServices() {
     }
   }
 }
+
+// Eliminar un servicio por ID
+export async function deleteService(service_id: string) {
+  try {
+    const token = await AsyncStorage.getItem('token');
+    if (!token) throw new Error('No se encontró el token de autenticación');
+
+    const response = await api.delete(`/service/delete/${service_id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    // Si la API responde éxito (200 o 204), retornamos true
+    if (response.status === 200 || response.status === 204) {
+      return true;
+    }
+
+    throw new Error('No se pudo eliminar el servicio');
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error('Error en deleteService:', error.message);
+      throw error;
+    } else {
+      console.error('Error desconocido en deleteService:', error);
+      throw new Error('Ocurrió un error desconocido al eliminar el servicio');
+    }
+  }
+}

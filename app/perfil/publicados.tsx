@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ScrollView, View, useColorScheme, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
-import { getUserServices } from '@/helpers/service';
+import { getUserServices, deleteService } from '@/helpers/service';
 import { useRouter, Stack } from 'expo-router';
 import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
 import { ThemeContext } from '@/context/themeContext';
@@ -22,7 +22,7 @@ export default function MainFeedScreen() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const router = useRouter()
-  const {currentTheme} = useContext(ThemeContext);
+  const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
 
   // Función para transformar los datos del API
@@ -46,13 +46,13 @@ export default function MainFeedScreen() {
       setTotalPages(result.pages);
       setPage(pageNum);
     } catch (error: any) {
-      Alert.alert('Error',error.message || 'Error al cargar servicios',[
+      Alert.alert('Error', error.message || 'Error al cargar servicios', [
         {
-          text : 'OK'
+          text: 'OK'
         }
-        ], {
-        cancelable : true
-        });
+      ], {
+        cancelable: true
+      });
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -74,6 +74,32 @@ export default function MainFeedScreen() {
     if (page < totalPages && !loading) {
       fetchServices(page + 1, searchText);
     }
+  };
+
+  const handleLongPress = (serviceId: string) => {
+    Alert.alert(
+      "Eliminar servicio",
+      "¿Estás seguro de que deseas eliminar este servicio?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const success = await deleteService(serviceId);
+              if (success) {
+                setServices(prev => prev.filter(s => s.id !== serviceId));
+                Alert.alert("Éxito", "El servicio ha sido eliminado.");
+              }
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "No se pudo eliminar el servicio");
+            }
+          }
+        }
+      ],
+      { cancelable: true }
+    );
   };
 
   // Efecto inicial para cargar datos
@@ -118,7 +144,8 @@ export default function MainFeedScreen() {
           <ServiceFeedCard
             id="ad-1"
             title="GRANDES PROPUESTAS"
-            distance="Patrocinado"
+            address="Patrocinado"
+            category="Publicidad"
             personName="Burger King"
             serviceImages={[
               'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
@@ -138,6 +165,7 @@ export default function MainFeedScreen() {
               title={service.title}
               personName={service.personName}
               onPress={() => handleServicePress(service.id)}
+              onLongPress={() => handleLongPress(service.id)}
             />
           ))}
 
