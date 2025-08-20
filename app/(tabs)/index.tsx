@@ -303,7 +303,7 @@ export default function MainFeedScreen() {
               onToggleFavorite={() =>
                 handleToggleFavorite(service.id, service.isFavorite)
               }
-              onPress={() => router.push(`/servicio/${service.id}`)}
+              onPress={() => router.push(`/servicio/${service.id}/details`)}
             />
           ))}
 

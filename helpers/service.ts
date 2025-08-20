@@ -2,7 +2,7 @@ import api from '@/request';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export async function createService(
-    serviceData: {
+  serviceData: {
     service_name: string;
     category: string;
     description: string;
@@ -28,8 +28,8 @@ export async function createService(
 
     // 2. Agregar otros campos
     Object.keys(serviceData).forEach(key => {
-      formData.append(key, 
-        key === 'tipo' 
+      formData.append(key,
+        key === 'tipo'
           ? JSON.stringify(serviceData[key]) // Array a string
           : serviceData[key] //aqui sale una advertencia de typescript
       );
@@ -53,7 +53,7 @@ export async function createService(
 
 //Obtener servicios publicados por el usuario
 export async function getUserServices() {
-   try {
+  try {
     const token = await AsyncStorage.getItem('token');
     if (!token) throw new Error('No se encontró el token de autenticación');
 
@@ -75,13 +75,71 @@ export async function getUserServices() {
     // Manejo de errores
     if (error instanceof Error) {
       console.error('Error en getUserServices:', error.message);
-      
+
       // Relanzamos el error para que el componente que llama pueda manejarlo
       throw error;
     } else {
       // Para errores que no son instancias de Error
       console.error('Error desconocido en getUserServices:', error);
       throw new Error('Ocurrió un error desconocido al obtener servicios');
+    }
+  }
+}
+
+// Actualizar un servicio por ID
+export async function updateService(service_id: string, serviceData: Record<string, any>) {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    if (!token) throw new Error("No se encontró el token de autenticación");
+
+    const formData = new FormData();
+
+    serviceData.photos.forEach((img: string, index: number) => {
+      if (img.startsWith("file://")) {
+        // Nuevas imágenes locales
+        formData.append("serviceImages", {
+          uri: img,
+          type: "image/jpeg",
+          name: `image_${index}.jpg`,
+        } as any);
+      }
+    });
+
+    // Enviar las URLs existentes en un solo campo JSON
+    const existingUrls = serviceData.photos.filter((img: string) => !img.startsWith("file://"));
+    formData.append("existingPhotos", JSON.stringify(existingUrls));
+
+
+    // Agregar otros campos (incluyendo 'tipo')
+    Object.keys(serviceData).forEach((key) => {
+      formData.append(
+        key,
+        key === "tipo"
+          ? JSON.stringify(serviceData[key]) // el backend lo procesa igual que en create
+          : serviceData[key]
+      );
+    });
+
+    // llamada al backend
+    const response = await api.patch(`/service/patch/${service_id}`, formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    if (response.status === 200) {
+      return response.data.service; // retorna el servicio actualizado
+    }
+
+    throw new Error("No se pudo actualizar el servicio");
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Error en updateService:", error.message);
+      throw error;
+    } else {
+      console.error("Error desconocido en updateService:", error);
+      throw new Error("Ocurrió un error desconocido al actualizar el servicio");
     }
   }
 }
