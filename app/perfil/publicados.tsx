@@ -140,22 +140,6 @@ export default function MainFeedScreen() {
 
         {/* Service Feed */}
         <View className="pb-6">
-          {/* Ejemplo de anuncio estático (similar al que tenías) */}
-          <ServiceFeedCard
-            id="ad-1"
-            title="GRANDES PROPUESTAS"
-            address="Patrocinado"
-            category="Publicidad"
-            personName="Burger King"
-            serviceImages={[
-              'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
-              'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop'
-            ]}
-            description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
-            isFavorite={false}
-            isAd={true}
-            onPress={() => console.log('Anuncio presionado')}
-          />
           {/* Lista de servicios */}
           {services.map((service) => (
             <OwnedServiceCard

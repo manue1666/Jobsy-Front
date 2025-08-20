@@ -5,6 +5,8 @@ import {
   RefreshControl,
   Alert,
   ActivityIndicator,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
@@ -16,6 +18,8 @@ import { getUserProfile } from '@/helpers/profile';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { getUserLocation } from '@/helpers/location';
 import { useSearchRange } from "@/context/searchRangeContext";
+import { Ionicons } from "@expo/vector-icons";
+import { BannerBoost } from "@/components/mainComponents/principal/bannerBoost";
 
 interface ServicePost {
   id: string;
@@ -40,6 +44,12 @@ interface UserProfile {
     profilePhoto: string;
   };
 }
+
+export const BOOST_PLANS = {
+  "24h": { amount: 150, durationMs: 24 * 60 * 60 * 1000 },
+  "72h": { amount: 350, durationMs: 72 * 60 * 60 * 1000 },
+  "1week": { amount: 600, durationMs: 7 * 24 * 60 * 60 * 1000 },
+};
 
 export default function MainFeedScreen() {
   const [searchText, setSearchText] = useState("");
@@ -269,33 +279,17 @@ export default function MainFeedScreen() {
           onChangeText={setSearchText}
           onSearchPress={() => fetchServices(1, searchText)}
         />
+        <BannerBoost/>
 
         <View className="pb-6">
-          {/* Anuncio estático de ejemplo */}
-          <ServiceFeedCard
-            id="ad-1"
-            title="GRANDES PROPUESTAS"
-            address="Patrocinado"
-            category="Anuncio"
-            personName="Burger King"
-            serviceImages={[
-              "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop",
-              "https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=400&h=300&fit=crop",
-            ]}
-            description="COMBO DELUXE CHEDDAR por solo $22. Las mejores hamburguesas al mejor precio. ¡Ordena ahora!"
-            isFavorite={false}
-            isAd={true}
-            onPress={() => console.log("Anuncio presionado")}
-          />
-
           {/* Lista de servicios */}
           {services.map((service) => (
             <ServiceFeedCard
               key={service.id}
               id={service.id}
               title={service.title}
-              address={service.address} // Usar la dirección del servicio
-              category={service.category} // Mostrar la categoría
+              address={service.address}
+              category={service.category}
               personName={service.personName}
               serviceImages={service.serviceImages}
               description={service.description}

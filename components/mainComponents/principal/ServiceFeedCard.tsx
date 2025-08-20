@@ -1,27 +1,17 @@
 import React, { useContext, useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  Linking,
-  Alert,
-} from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "@/context/themeContext";
 
 interface ServiceFeedCardProps {
   id: string;
   title: string;
-  address: string; // Cambiado de distance a address
-  category: string; // Nueva prop
+  address: string;
+  category: string;
   personName: string;
   serviceImages: string[];
   description: string;
   isFavorite: boolean;
-  isAd?: boolean;
-  adUrl?: string;
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   onPress?: () => void;
   onContactPress?: () => void;
@@ -36,11 +26,8 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   serviceImages = [],
   description,
   isFavorite = false,
-  isAd = false,
-  adUrl,
   onToggleFavorite,
   onPress,
-  
 }) => {
   const [favorite, setFavorite] = useState(isFavorite);
   const { currentTheme } = useContext(ThemeContext);
@@ -52,46 +39,18 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
     onToggleFavorite?.(id, newFavoriteState);
   };
 
-  const handleAdPress = async () => {
-    if (isAd && adUrl) {
-      try {
-        const supported = await Linking.canOpenURL(adUrl);
-        if (supported) {
-          await Linking.openURL(adUrl);
-        } else {
-          Alert.alert("Error", "No se puede abrir el enlace");
-        }
-      } catch (error) {
-        Alert.alert("Error", "No se puede abrir el enlace");
-      }
-    } else {
-      onPress?.();
-    }
+  const handleCardPress = () => {
+    onPress?.();
   };
-
-/*   const handleContactPress = () => {
-    if (isAd && adUrl) {
-      handleAdPress();
-    } else {
-      onContactPress?.();
-    }
-  }; */
 
   return (
     <TouchableOpacity
-      onPress={handleAdPress}
+      onPress={handleCardPress}
       className={`mx-4 mb-4 rounded-2xl overflow-hidden shadow-sm ${
         isDark ? "bg-gray-800" : "bg-white"
-      } ${isAd ? "border-2 border-blue-200" : ""}`}
+      }`}
       activeOpacity={0.95}
     >
-      {/* Ad Badge */}
-      {isAd && (
-        <View className="absolute top-3 left-3 bg-blue-500 rounded-full px-2 py-1 z-10">
-          <Text className="text-white text-xs font-bold">ANUNCIO</Text>
-        </View>
-      )}
-
       {/* Service Images */}
       {serviceImages.length > 0 && (
         <View className="relative">
@@ -106,7 +65,7 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
                 key={index}
                 source={{ uri: imageUri }}
                 className="w-full h-48"
-                style={{ width: 350 }} // Approximate card width
+                style={{ width: 350 }}
                 resizeMode="cover"
               />
             ))}
@@ -153,20 +112,18 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
             </View>
           </View>
 
-          {/* Only show favorite for non-ads */}
-          {!isAd && (
-            <TouchableOpacity
-              onPress={handleToggleFavorite}
-              className="p-1"
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons
-                name={favorite ? "heart" : "heart-outline"}
-                size={24}
-                color={favorite ? "#EF4444" : isDark ? "#9CA3AF" : "#9CA3AF"}
-              />
-            </TouchableOpacity>
-          )}
+          {/* Favorite Button */}
+          <TouchableOpacity
+            onPress={handleToggleFavorite}
+            className="p-1"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <Ionicons
+              name={favorite ? "heart" : "heart-outline"}
+              size={24}
+              color={favorite ? "#EF4444" : isDark ? "#9CA3AF" : "#9CA3AF"}
+            />
+          </TouchableOpacity>
         </View>
 
         {/* Address */}
@@ -199,14 +156,12 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
 
         {/* Action Button (opcional) */}
         {/* <TouchableOpacity
-          onPress={handleContactPress}
-          className={`rounded-xl py-3 items-center ${
-            isAd ? 'bg-green-500' : 'bg-blue-500'
-          }`}
+          onPress={onContactPress}
+          className="rounded-xl py-3 items-center bg-blue-500"
           activeOpacity={0.8}
         >
           <Text className="text-white font-semibold text-base">
-            {isAd ? 'Visitar sitio' : 'Contactar'}
+            Contactar
           </Text>
         </TouchableOpacity> */}
       </View>
