@@ -1,23 +1,8 @@
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  ScrollView,
-  Image,
-  Linking,
-  TouchableOpacity,
-  Alert,
-  useColorScheme,
-} from "react-native";
+import { View, Text, ActivityIndicator, ScrollView, Image, Linking, TouchableOpacity, Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { getServiceById, Service } from "@/helpers/service_detail";
-import {
-  FontAwesome,
-  MaterialIcons,
-  Feather,
-  Ionicons,
-} from "@expo/vector-icons";
+import { FontAwesome, MaterialIcons, Feather, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "@/context/themeContext";
 
 export default function ServiceDetailScreen() {

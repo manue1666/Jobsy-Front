@@ -104,7 +104,7 @@ export default function FavoritesScreen() {
 
   const handleServicePress = (serviceId: string) => {
     console.log('View service details:', serviceId);
-    router.push(`/servicio/${serviceId}`)
+    router.push(`/servicio/${serviceId}/details`)
   };
 
   const handleRefresh = async () => {

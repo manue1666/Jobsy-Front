@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react';
 import { View, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useColorScheme } from 'react-native';
 import { FormInput } from '@/components/authComponents/FormInput';
 import * as Location from 'expo-location';
 import { ThemeContext } from '@/context/themeContext';

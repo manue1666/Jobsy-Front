@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { ScrollView, View, useColorScheme, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { ScrollView, View, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { getUserServices, deleteService } from '@/helpers/service';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, useFocusEffect } from 'expo-router';
 import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
 import { ThemeContext } from '@/context/themeContext';
 
@@ -66,8 +66,8 @@ export default function MainFeedScreen() {
   };
 
   const handleServicePress = (serviceId: string) => {
-    console.log('View service details:', serviceId);
-    router.push(`/servicio/${serviceId}`)
+    console.log('Edit service:', serviceId);
+    router.push(`/servicio/${serviceId}/editar`)
   };
 
   const handleLoadMore = () => {
@@ -102,14 +102,14 @@ export default function MainFeedScreen() {
     );
   };
 
-  // Efecto inicial para cargar datos
-  useEffect(() => {
-    const init = async () => {
-      fetchServices(1, '');
-    }
-    init();
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      const init = async () => {
+        fetchServices(1, '');
+      }
+      init();
+    }, [])
+  );
 
   return (
     <ScreenContainer>

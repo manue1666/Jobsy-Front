@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { View, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useColorScheme } from 'react-native';
@@ -8,15 +8,24 @@ import { ThemeContext } from '@/context/themeContext';
 interface ImageUploadProps {
   maxImages?: number;
   onImagesChange?: (images: string[]) => void;
+  initialImages?: string[]; //por si se esta cargando las imagenes de un servicio existente
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({ 
   maxImages = 5, 
-  onImagesChange 
+  onImagesChange,
+  initialImages = [] 
 }) => {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<string[]>(initialImages);
   const {currentTheme} = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
+
+    // sincronizar las imágenes iniciales con el estado al montar/cambiar props
+  useEffect(() => {
+    if (initialImages.length > 0) {
+      setImages(initialImages);
+    }
+  }, [initialImages]);
 
   const pickImage = async () => {
     if (images.length >= maxImages) {
