@@ -3,26 +3,19 @@ import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from "react-na
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemeContext } from "@/context/themeContext";
-import { useStripe } from "@stripe/stripe-react-native";
 import { boostService } from "@/helpers/boost_service";
-
+import { useSafeStripe } from '@/hooks/useSafeStripe';
 
 function ConfirmBoostScreen() {
-  const params = useLocalSearchParams<{ serviceId?: string; planId?: string; }>();
+  const params = useLocalSearchParams<{ serviceId?: string; planId?: string }>();
   const { currentTheme } = useContext(ThemeContext);
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const { initPaymentSheet, presentPaymentSheet, isAvailable, isLoading: stripeLoading } = useSafeStripe();
   const isDark = currentTheme === "dark";
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
 
-  // Precios de los planes
-  const planPrices = {
-    '24h': 1.50,
-    '72h': 3.50,
-    '1week': 6.00
-  };
-
+  const planPrices = { '24h': 1.50, '72h': 3.50, '1week': 6.00 };
   const currentPrice = planPrices[params.planId as keyof typeof planPrices] || 0;
 
   const handlePayment = async () => {
@@ -31,14 +24,17 @@ function ConfirmBoostScreen() {
       return;
     }
 
+    if (!isAvailable) {
+      Alert.alert("Error", "Sistema de pagos no disponible en este momento");
+      return;
+    }
+
     setIsLoading(true);
     setPaymentStatus('processing');
 
     try {
-      // 1. Obtener clientSecret de tu backend
       const { clientSecret } = await boostService(params.serviceId, params.planId);
-      
-      // 2. Inicializar Payment Sheet de Stripe
+
       const { error } = await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
         merchantDisplayName: "Jobsy Marketplace",
@@ -47,40 +43,48 @@ function ConfirmBoostScreen() {
         allowsDelayedPaymentMethods: false,
       });
 
-      if (error) {
-        throw new Error(`Error al configurar pago: ${error.message}`);
-      }
+      if (error) throw new Error(`Error al configurar pago: ${error.message}`);
 
-      // 3. Mostrar la pasarela de pago
       const { error: paymentError } = await presentPaymentSheet();
-      
-      if (paymentError) {
-        throw new Error(`Error en el pago: ${paymentError.message}`);
-      }
+      if (paymentError) throw new Error(`Error en el pago: ${paymentError.message}`);
 
-      // 4. Pago exitoso
       setPaymentStatus('success');
-      Alert.alert(
-        "¡Éxito!", 
-        `Tu servicio ha sido boosteado con el plan ${params.planId}`,
-        [
-          { 
-            text: "Aceptar", 
-            onPress: () => router.back() 
-          }
-        ]
+      Alert.alert("¡Éxito!", `Tu servicio ha sido boosteado con el plan ${params.planId}`,
+        [{ text: "Aceptar", onPress: () => router.back() }]
       );
 
     } catch (error: any) {
       setPaymentStatus('error');
-      Alert.alert(
-        "Error en el pago", 
-        error.message || "Ocurrió un error al procesar el pago"
-      );
+      Alert.alert("Error en el pago", error.message || "Ocurrió un error al procesar el pago");
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (stripeLoading) {
+    return (
+      <ScreenContainer>
+        <ActivityIndicator size="large" />
+        <Text className="text-center mt-4">Cargando sistema de pagos...</Text>
+      </ScreenContainer>
+    );
+  }
+
+  if (!isAvailable) {
+    return (
+      <ScreenContainer>
+        <View className="p-6">
+          <Text className="text-lg text-center text-red-600 mb-4">
+            ⚠️ Sistema de pagos temporalmente no disponible
+          </Text>
+          <Text className="text-center text-gray-600">
+            Estamos teniendo problemas técnicos con nuestro procesador de pagos.
+            Por favor intenta más tarde.
+          </Text>
+        </View>
+      </ScreenContainer>
+    );
+  }
 
   return (
     <ScreenContainer>
@@ -91,7 +95,7 @@ function ConfirmBoostScreen() {
           headerTintColor: isDark ? "#ffffff" : "#000000",
         }}
       />
-      
+
       <View className={`flex-1 px-6 py-8 ${isDark ? "bg-[#111823]" : "bg-white"}`}>
         <Text className={`text-2xl font-bold mb-6 text-center ${isDark ? "text-blue-100" : "text-blue-800"}`}>
           Confirmar Boost
@@ -103,7 +107,7 @@ function ConfirmBoostScreen() {
             Resumen del Boost
           </Text>
           <Text className={`mb-1 ${isDark ? "text-blue-200" : "text-gray-700"}`}>
-            ⚡ Plan: {params.planId} 
+            ⚡ Plan: {params.planId}
           </Text>
           <Text className={`mb-1 ${isDark ? "text-blue-200" : "text-gray-700"}`}>
             💰 Precio: ${currentPrice.toFixed(2)} USD
@@ -136,7 +140,7 @@ function ConfirmBoostScreen() {
             ✅ Pago completado exitosamente
           </Text>
         )}
-        
+
         {paymentStatus === 'error' && (
           <Text className="text-red-600 text-center mb-4">
             ❌ Error en el pago
@@ -155,3 +159,4 @@ function ConfirmBoostScreen() {
 }
 
 export default ConfirmBoostScreen;
+

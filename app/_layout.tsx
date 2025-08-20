@@ -9,10 +9,9 @@ import { useColorScheme } from '@/components/useColorScheme';
 import "@/global.css"
 import { SearchRangeProvider } from '@/context/searchRangeContext';
 import ThemeProvider from '@/context/themeContext';
-// ✅ Importa StripeProvider
-import { StripeProvider } from '@stripe/stripe-react-native';
 
 export {
+  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
@@ -20,6 +19,7 @@ export const unstable_settings = {
   initialRouteName: '(auth)',
 };
 
+// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -28,6 +28,7 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
+  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -46,50 +47,33 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+
   // Temporal hasta que hagamos el auth de verdad
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const colorScheme = useColorScheme();
   const skipAuth = process.env.EXPO_PUBLIC_SKIP_AUTH === 'true';
 
-  // ✅ Configuración de Stripe
-  const stripePublishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+  if (skipAuth) {
+    return (
 
-  if (!stripePublishableKey) {
-    console.error('❌ Stripe publishable key no encontrada');
-    return null;
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      </Stack>
+
+    )
   }
 
-  // ✅ Contenido de la app (igual que antes)
-  const renderAppContent = () => {
-    if (skipAuth) {
-      return (
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
-      );
-    }
-
-    return (
+  return (
+    <ThemeProvider>
+      <SearchRangeProvider>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       </Stack>
-    );
-  };
-
-  // ✅ Retorna la estructura ORIGINAL pero envuelta en StripeProvider
-  return (
-    <StripeProvider
-      publishableKey={stripePublishableKey}
-      urlScheme="jobsy"
-      // ✅ No merchantIdentifier para Android
-    >
-      <ThemeProvider>
-        <SearchRangeProvider>
-          {renderAppContent()}
-        </SearchRangeProvider>
-      </ThemeProvider>
-    </StripeProvider>
+      </SearchRangeProvider>
+    </ThemeProvider>
   );
 }
