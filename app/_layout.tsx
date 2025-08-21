@@ -9,6 +9,8 @@ import { useColorScheme } from '@/components/useColorScheme';
 import "@/global.css"
 import { SearchRangeProvider } from '@/context/searchRangeContext';
 import ThemeProvider from '@/context/themeContext';
+import { StripeInitializer } from '@/components/StripeInitializer';
+
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -47,7 +49,6 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-
   // Temporal hasta que hagamos el auth de verdad
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const colorScheme = useColorScheme();
@@ -55,24 +56,26 @@ function RootLayoutNav() {
 
   if (skipAuth) {
     return (
-
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      </Stack>
-
+      <>
+        <StripeInitializer /> {/* Agregamos el inicializador aquí */}
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        </Stack>
+      </>
     )
   }
 
   return (
     <ThemeProvider>
       <SearchRangeProvider>
-      <Stack>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      </Stack>
+        <>
+          <StripeInitializer /> {/* Agregamos el inicializador aquí también */}
+          <Stack>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          </Stack>
+        </>
       </SearchRangeProvider>
     </ThemeProvider>
   );
