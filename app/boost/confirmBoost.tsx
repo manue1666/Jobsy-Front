@@ -16,7 +16,7 @@ function ConfirmBoostScreen() {
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
-  const planPrices = { '24h': 1.50, '72h': 3.50, '1week': 6.00 };
+  const planPrices = { '24h': 30, '72h': 70, '1week': 120 };
   const planDurations = { '24h': '24 horas', '72h': '72 horas', '1week': '1 semana' };
   const currentPrice = planPrices[params.planId as keyof typeof planPrices] || 0;
   const durationText = planDurations[params.planId as keyof typeof planDurations] || '';
@@ -208,7 +208,7 @@ function ConfirmBoostScreen() {
             ⚡ Plan: {params.planId} ({durationText})
           </Text>
           <Text className={`mb-4 text-xl font-bold ${isDark ? "text-blue-100" : "text-blue-800"}`}>
-            💰 Precio: ${currentPrice.toFixed(2)} USD
+            💰 Precio: ${currentPrice.toFixed(2)} MXN
           </Text>
           
           <Text className={`text-sm mt-2 ${isDark ? "text-blue-300" : "text-gray-500"}`}>

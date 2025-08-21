@@ -12,7 +12,7 @@ import { ServiceToBoost } from '@/components/mainComponents/principal/serviceBoo
 
 // Boost plans info
 export const BOOST_PLANS = {
-  "24h": { amount: 25, durationMs: 24 * 60 * 60 * 1000 },
+  "24h": { amount: 30, durationMs: 24 * 60 * 60 * 1000 },
   "72h": { amount: 70, durationMs: 72 * 60 * 60 * 1000 },
   "1week": { amount: 120, durationMs: 7 * 24 * 60 * 60 * 1000 },
 };
@@ -87,9 +87,9 @@ export default function BoostHomeScreen() {
             <Text className={`font-semibold ${isDark ? "text-yellow-200" : "text-yellow-700"}`}>Planes disponibles:</Text>
           </View>
           <View className="ml-6">
-            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 24h: <Text className="font-bold">$25</Text></Text>
-            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 72h: <Text className="font-bold">$100</Text></Text>
-            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 1 semana: <Text className="font-bold">$150</Text></Text>
+            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 24h: <Text className="font-bold">$30</Text></Text>
+            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 72h: <Text className="font-bold">$70</Text></Text>
+            <Text className={`${isDark ? "text-blue-100" : "text-blue-900"}`}>• 1 semana: <Text className="font-bold">$120</Text></Text>
           </View>
         </View>
 

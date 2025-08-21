@@ -26,7 +26,7 @@ export const BannerBoost = () => {
             </View>
             <Text className="text-xs text-blue-900 mb-1">
               Destaca tu publicación y consigue más clientes. Planes desde{" "}
-              <Text className="font-bold">$25</Text> por 24h.
+              <Text className="font-bold">$30</Text> por 24h.
             </Text>
           </View>
           <TouchableOpacity
