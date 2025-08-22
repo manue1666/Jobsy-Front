@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
 interface SearchRangeContextProps {
   searchRange: number;
@@ -7,7 +7,7 @@ interface SearchRangeContextProps {
 
 const SearchRangeContext = createContext<SearchRangeContextProps | undefined>(undefined);
 
-export const SearchRangeProvider = ({ children }: { children: ReactNode }) => {
+export const SearchRangeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [searchRange, setSearchRange] = useState(10); // valor inicial 10 km
   return (
     <SearchRangeContext.Provider value={{ searchRange, setSearchRange }}>

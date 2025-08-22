@@ -30,6 +30,7 @@ interface ServicePost {
   serviceImages: string[];
   description: string;
   isFavorite: boolean;
+  isPromoted?: boolean;
   user?: {
     _id: string;
     name: string;
@@ -63,7 +64,6 @@ export default function MainFeedScreen() {
   const router = useRouter();
   const { searchRange } = useSearchRange();
 
-  // Función para transformar los datos del API
   const transformServiceData = useCallback(
     (apiServices: any[]): ServicePost[] => {
       return apiServices.map((service) => ({
@@ -80,10 +80,12 @@ export default function MainFeedScreen() {
               ],
         description: service.description,
         isFavorite: service.isFavorite || false,
+        isPromoted: service.isPromoted || false,
       }));
     },
     []
   );
+  
 
 
   // Método para cargar info del usuario activo
@@ -294,6 +296,7 @@ export default function MainFeedScreen() {
               serviceImages={service.serviceImages}
               description={service.description}
               isFavorite={service.isFavorite}
+              isPromoted={service.isPromoted} // <-- Añadido soporte para el icono de cohete
               onToggleFavorite={() =>
                 handleToggleFavorite(service.id, service.isFavorite)
               }

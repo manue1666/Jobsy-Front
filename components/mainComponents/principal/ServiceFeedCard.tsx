@@ -12,6 +12,7 @@ interface ServiceFeedCardProps {
   serviceImages: string[];
   description: string;
   isFavorite: boolean;
+  isPromoted?: boolean; // Nuevo parámetro opcional
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   onPress?: () => void;
   onContactPress?: () => void;
@@ -26,6 +27,7 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   serviceImages = [],
   description,
   isFavorite = false,
+  isPromoted = false,
   onToggleFavorite,
   onPress,
 }) => {
@@ -77,6 +79,24 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
               <Text className="text-white text-xs font-medium">
                 1/{serviceImages.length}
               </Text>
+            </View>
+          )}
+
+          {/* Promoted Icon */}
+          {isPromoted && (
+            <View
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                backgroundColor: "#2563eb",
+                borderRadius: 9999,
+                padding: 6,
+                zIndex: 10,
+                elevation: 3,
+              }}
+            >
+              <Ionicons name="rocket-outline" size={20} color="#fff" />
             </View>
           )}
         </View>
