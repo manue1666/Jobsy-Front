@@ -89,8 +89,6 @@ export default function PublicarScreen() {
     try {
       setIsLoading(true);
 
-
-      if(!getUserServices()){
               await createService(
         {
           service_name: serviceData.serviceName,
@@ -110,15 +108,8 @@ export default function PublicarScreen() {
         ], {
         cancelable : true
         });
-      }else{
-              Alert.alert('OPCION PREMIUM','Cambiate a PREMIUN para disfrutar de todas las ventajas de JOBSY',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
-      }
+      
+      
 
       router.replace("/(tabs)");
     } catch (error) {
