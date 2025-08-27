@@ -10,6 +10,8 @@ import { LocationInput } from "@/components/mainComponents/publicar/escogerLocal
 import { CategorySelector } from "@/components/mainComponents/publicar/escogerCategoria";
 import { createService } from "@/helpers/service";
 import { router, useFocusEffect } from "expo-router";
+import { getUserServices } from '@/helpers/service';
+
 
 interface ServiceData {
   images: string[];
@@ -87,7 +89,9 @@ export default function PublicarScreen() {
     try {
       setIsLoading(true);
 
-      await createService(
+
+      if(!getUserServices()){
+              await createService(
         {
           service_name: serviceData.serviceName,
           category: selectedCategory,
@@ -99,14 +103,23 @@ export default function PublicarScreen() {
         },
         serviceData.images // Pasa las URIs de las imágenes
       );
-
-      Alert.alert('Éxito','Servicio publicado',[
+            Alert.alert('Éxito','Servicio publicado',[
         {
           text : 'OK'
         }
         ], {
         cancelable : true
         });
+      }else{
+              Alert.alert('OPCION PREMIUM','Cambiate a PREMIUN para disfrutar de todas las ventajas de JOBSY',[
+        {
+          text : 'OK'
+        }
+        ], {
+        cancelable : true
+        });
+      }
+
       router.replace("/(tabs)");
     } catch (error) {
       Alert.alert('Error','error al crear servicio',[
