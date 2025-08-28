@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useContext, } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { router } from 'expo-router';
@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { deleteUserProfile, getUserProfile } from '../../helpers/profile';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ThemeContext } from '@/context/themeContext';
+import { BannerPremium } from '@/components/mainComponents/principal/bannerPremium';
 
 export default function ProfileScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -109,51 +110,83 @@ export default function ProfileScreen() {
   return (
     <ScreenContainer>
       <SafeAreaView className="flex-1 items-center px-6 py-4 justify-between">
-        <View className="w-full items-center">
-          {/* Título */}
-          <Text className={`text-3xl font-semibold mb-4 ${textColor}`}>Mi perfil</Text>
-        </View>
+        <ScrollView
+          className="w-full"
+          contentContainerStyle={{ alignItems: 'center', flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="w-full items-center">
+            {/* Título */}
+            <Text className={`text-3xl font-semibold mb-4 ${textColor}`}>Mi perfil</Text>
+          </View>
 
-        {loading ? (<ActivityIndicator size="large" color={isDark ? 'white' : 'black'} />) : (
-          <>
-            <View className="w-full items-center">
-              {/* Imagen y nombre */}
-              <Image
-                source={{ uri: profileData.user?.profilePhoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-                className="w-56 h-56 rounded-full mt-4 mb-4"
-              />
-              <Text className={`text-3xl font-medium mb-1 ${textColor}`}>{profileData.user?.name}</Text>
-              <Text className={`text-lg font-light mb-6 ${textColor}`}>{profileData.user?.email}</Text>
-
-              {/* Opciones */}
-              <View className="w-full space-y-3">
-                {profileOptions.map((option, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={option.onPress}
-                    className={`flex-row items-center p-4 mt-1 rounded-3xl ${cardBg}`}
-                  >
-                    <View className="mr-3">{option.icon(isDark ? 'white' : 'black')}</View>
-                    <View>
-                      <Text className={`font-semibold ${textColor}`}>{option.title}</Text>
-                      <Text className={`text-sm ${subtitleColor}`}>{option.subtitle}</Text>
+          {loading ? (<ActivityIndicator size="large" color={isDark ? 'white' : 'black'} />) : (
+            <>
+              <View className="w-full items-center">
+                {/* Imagen y nombre */}
+                <View className="relative">
+                  <Image
+                    source={{ uri: profileData.user?.profilePhoto || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                    className="w-56 h-56 rounded-full mt-4 mb-4"
+                  />
+                  {profileData.user?.isPremium && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: 18,
+                        right: 18,
+                        backgroundColor: '#fffbe6',
+                        borderRadius: 999,
+                        padding: 6,
+                        borderWidth: 2,
+                        borderColor: '#FFD700',
+                        elevation: 3,
+                      }}
+                    >
+                      <Ionicons name="star" size={28} color="#FFD700" />
                     </View>
-                  </TouchableOpacity>
-                ))}
+                  )}
+                </View>
+                <Text className={`text-3xl font-medium mb-1 ${textColor}`}>{profileData.user?.name}</Text>
+                <Text className={`text-lg font-light mb-2 ${textColor}`}>{profileData.user?.email}</Text>
+                {profileData.user?.isPremium && (
+                  <View className="flex-row items-center justify-center mb-4">
+                    <View className="flex-row items-center px-4 py-1 rounded-full bg-yellow-100 border border-yellow-300" style={{ elevation: 2 }}>
+                      <Ionicons name="star" size={18} color="#FFD700" style={{ marginRight: 4 }} />
+                      <Text className="text-xs font-bold text-yellow-800">Usuario Premium</Text>
+                    </View>
+                  </View>
+                )}
+                {/* Opciones */}
+                <View className="w-full space-y-3">
+                  <BannerPremium />
+                  {profileOptions.map((option, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={option.onPress}
+                      className={`flex-row items-center p-4 mt-1 rounded-3xl ${cardBg}`}
+                    >
+                      <View className="mr-3">{option.icon(isDark ? 'white' : 'black')}</View>
+                      <View>
+                        <Text className={`font-semibold ${textColor}`}>{option.title}</Text>
+                        <Text className={`text-sm ${subtitleColor}`}>{option.subtitle}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
-            </View>
 
-            {/* Cerrar sesión */}
-            <TouchableOpacity
-              onPress={() => router.replace('/(auth)')}
-              className={`flex-row items-center justify-center p-4 mt-6 rounded-3xl w-full ${logoutBg}`}
-            >
-              <Entypo name="log-out" size={22} color={isDark ? 'white' : 'black'} />
-              <Text className={`font-medium ml-2 ${textColor}`}>Cerrar sesión</Text>
-            </TouchableOpacity>
-          </>
-        )}
-
+              {/* Cerrar sesión */}
+              <TouchableOpacity
+                onPress={() => router.replace('/(auth)')}
+                className={`flex-row items-center justify-center p-4 mt-6 rounded-3xl w-full ${logoutBg}`}
+              >
+                <Entypo name="log-out" size={22} color={isDark ? 'white' : 'black'} />
+                <Text className={`font-medium ml-2 ${textColor}`}>Cerrar sesión</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </ScrollView>
       </SafeAreaView>
     </ScreenContainer>
   );
