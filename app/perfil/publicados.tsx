@@ -6,6 +6,10 @@ import { getUserServices, deleteService } from '@/helpers/service';
 import { useRouter, Stack, useFocusEffect } from 'expo-router';
 import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
 import { ThemeContext } from '@/context/themeContext';
+import { BannerPremium } from '@/components/mainComponents/principal/bannerPremium';
+import { Ionicons } from '@expo/vector-icons';
+import { Text } from 'react-native';
+import { getUserProfile } from '@/helpers/profile';
 
 interface myService {
   id: string;
@@ -21,6 +25,7 @@ export default function MainFeedScreen() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [userIsPremium, setUserIsPremium] = useState<boolean | null>(null);
   const router = useRouter()
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
@@ -102,6 +107,19 @@ export default function MainFeedScreen() {
     );
   };
 
+  // Obtener si el usuario es premium usando getUserProfile
+  useEffect(() => {
+    const fetchUserPremium = async () => {
+      try {
+        const userProfile = await getUserProfile();
+        setUserIsPremium(!!userProfile?.user?.isPremium);
+      } catch {
+        setUserIsPremium(false);
+      }
+    };
+    fetchUserPremium();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const init = async () => {
@@ -137,9 +155,17 @@ export default function MainFeedScreen() {
         }}
         scrollEventThrottle={400}
       >
-
-        {/* Service Feed */}
         <View className="pb-6">
+          <BannerPremium />
+          {/* Aviso para usuarios no premium */}
+          {userIsPremium === false && (
+            <View className="mx-4 my-4 p-4 rounded-xl bg-yellow-100 border border-yellow-300 flex-row items-center">
+              <Ionicons name="lock-closed" size={24} color="#FFD700" style={{ marginRight: 10 }} />
+              <Text className="text-yellow-800 font-semibold">
+                Solo los usuarios <Text className="font-bold">Premium</Text> pueden editar sus servicios publicados.
+              </Text>
+            </View>
+          )}
           {/* Lista de servicios */}
           {services.map((service) => (
             <OwnedServiceCard
@@ -148,8 +174,17 @@ export default function MainFeedScreen() {
               profilePic={service.profilePic}
               title={service.title}
               personName={service.personName}
-              onPress={() => handleServicePress(service.id)}
-              onLongPress={() => handleLongPress(service.id)}
+              onPress={
+                userIsPremium
+                  ? () => handleServicePress(service.id)
+                  : undefined
+              }
+              onLongPress={
+                userIsPremium
+                  ? () => handleLongPress(service.id)
+                  : undefined
+              }
+              disabled={!userIsPremium}
             />
           ))}
 

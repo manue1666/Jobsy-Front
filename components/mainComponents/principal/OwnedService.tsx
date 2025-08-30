@@ -10,6 +10,7 @@ interface OwnedServiceCardProps {
     profilePic: string;
     onPress?: () => void;
     onLongPress?: () => void;
+    disabled?: boolean; // <-- Añadido para soportar la prop 'disabled'
 }
 
 export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
@@ -18,19 +19,21 @@ export const OwnedServiceCard: React.FC<OwnedServiceCardProps> = ({
     personName,
     profilePic,
     onPress,
-    onLongPress
+    onLongPress,
+    disabled = false // <-- Valor por defecto
 }) => {
     const {currentTheme} = useContext(ThemeContext);
     const isDark = currentTheme === 'dark';
 
     return (
         <TouchableOpacity
-            onPress={onPress}
-            onLongPress={onLongPress}
+            onPress={disabled ? undefined : onPress}
+            onLongPress={disabled ? undefined : onLongPress}
+            disabled={disabled}
             className={`rounded-2xl mx-4 mb-3 p-4 shadow-sm ${isDark
                     ? 'bg-gray-800 border border-gray-700'
                     : 'bg-white border border-gray-100'
-                }`}
+                } ${disabled ? 'opacity-50' : ''}`}
             activeOpacity={0.7}
         >
             <View className="flex-row items-center justify-between">

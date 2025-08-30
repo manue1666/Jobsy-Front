@@ -11,6 +11,7 @@ import { CategorySelector } from "@/components/mainComponents/publicar/escogerCa
 import { createService } from "@/helpers/service";
 import { router, useFocusEffect } from "expo-router";
 import { getUserServices } from '@/helpers/service';
+import { getUserProfile } from '../../helpers/profile';
 
 
 interface ServiceData {
@@ -45,6 +46,7 @@ export default function PublicarScreen() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [isPremium, setIsPremium] = useState<boolean>(false);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -149,6 +151,15 @@ export default function PublicarScreen() {
       });
       setErrors({});
       setSelectedCategory("");
+      // Obtener si el usuario es premium
+      (async () => {
+        try {
+          const user = await getUserProfile();
+          setIsPremium(!!user?.user?.isPremium);
+        } catch {
+          setIsPremium(false);
+        }
+      })();
     }, [])
   );
 
@@ -156,11 +167,19 @@ export default function PublicarScreen() {
     <ScreenContainer>
       <View className="flex-1 px-4 py-6">
         <FormCard title="Publicar Servicio" scrollable>
-          {/* Images Section - Ahora opcional */}
+          {/* Aviso premium */}
+          <View className="mb-4">
+            <Text className="text-xs text-yellow-800 bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-2">
+              <Text className="font-bold">Usuarios Premium:</Text> pueden publicar hasta 5 servicios y cada servicio puede tener hasta 9 imágenes.
+            </Text>
+          </View>
+          {/* Images Section */}
           <View className="mb-6">
-            <Text className="text-sm text-gray-500 mb-2">Fotos (opcional)</Text>
+            <Text className="text-sm text-gray-500 mb-2">
+              Fotos {isPremium ? "(hasta 9)" : "(solo 1)"}
+            </Text>
             <ImageUpload
-              maxImages={5}
+              maxImages={isPremium ? 9 : 1}
               onImagesChange={(images) => updateServiceData("images", images)}
             />
           </View>
