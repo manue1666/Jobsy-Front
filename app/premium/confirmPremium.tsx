@@ -11,6 +11,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemeContext } from "@/context/themeContext";
 import { premiumUserService } from "@/helpers/premium_user";
 import { useSafeStripe } from "@/hooks/useSafeStripe";
+import {sendEmail} from "@/helpers/email";
 
 function ConfirmPremiumScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -98,6 +99,15 @@ function ConfirmPremiumScreen() {
           "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
           [{ text: "Aceptar", onPress: () => router.replace("/(tabs)/perfil") }]
         );
+        //ENVIAR CORREO CON LOS BENEFICIOS, EL PRECIO, SU CORREO O NOMBRE Y LA DURACION
+        //EL CONTENIDO DEL PLAN PREMIUM
+        try{
+          const response = await sendEmail();
+          Alert.alert('CORREO ENVIADO', 'NOTIFICACION DE SUSCRIPCION CON EXITO');
+        }catch(err){
+          Alert.alert('CORREO NO ENVIADO', 'OCURRIO UN ERROR')
+        }
+        
       }
     } catch (error: any) {
       setPaymentStatus("error");
