@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useCallback, useContext } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { View, Text, ActivityIndicator, ScrollView, Image, Linking, TouchableOpacity, Alert } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { getServiceById, Service } from "@/helpers/service_detail";
 import { FontAwesome, MaterialIcons, Feather, Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "@/context/themeContext";
+import { AuthContext } from "@/context/authContext";
+import CommentsSection from "./CommentsSection";
 
 export default function ServiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -11,6 +13,7 @@ export default function ServiceDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { currentTheme } = useContext(ThemeContext);
+  const { user } = useContext(AuthContext); // user._id para comparar
   const isDark = currentTheme === "dark";
 
   // Colores dinámicos basados en el tema
@@ -39,7 +42,7 @@ export default function ServiceDetailScreen() {
     fetchService();
   }, [id]);
 
-  const handleWhatsAppPress = useCallback(() => {
+  const handleWhatsAppPress = () => {
     if (!service?.phone) return;
 
     const phoneNumber = service.phone.replace(/[^\d]/g, "");
@@ -58,21 +61,21 @@ export default function ServiceDetailScreen() {
           });
       }
     });
-  }, [service?.phone]);
+  };
 
-  const handleCallPress = useCallback(() => {
+  const handleCallPress = () => {
     if (!service?.phone) return;
 
     const phoneNumber = `tel:${service.phone.replace(/[^\d]/g, "")}`;
     Linking.openURL(phoneNumber);
-  }, [service?.phone]);
+  };
 
-  const handleEmailPress = useCallback(() => {
+  const handleEmailPress = () => {
     if (!service?.email) return;
 
     const url = `mailto:${service.email}`;
     Linking.openURL(url);
-  }, [service?.email]);
+  };
 
   if (loading) {
     return (
@@ -250,6 +253,9 @@ export default function ServiceDetailScreen() {
             </ScrollView>
           </View>
         )}
+
+        {/* Sección de comentarios */}
+        <CommentsSection serviceId={id as string}/>
       </View>
     </ScrollView>
   );

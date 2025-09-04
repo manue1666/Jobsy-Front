@@ -12,6 +12,7 @@ interface ServiceFeedCardProps {
   serviceImages: string[];
   description: string;
   isFavorite: boolean;
+  favoritesCount?: number; // Nuevo: contador de favoritos
   isPromoted?: boolean; // Nuevo parámetro opcional
   onToggleFavorite?: (id: string, isFavorite: boolean) => void;
   onPress?: () => void;
@@ -27,6 +28,7 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   serviceImages = [],
   description,
   isFavorite = false,
+  favoritesCount = 0, // Nuevo: valor por defecto 0
   isPromoted = false,
   onToggleFavorite,
   onPress,
@@ -132,18 +134,27 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
             </View>
           </View>
 
-          {/* Favorite Button */}
-          <TouchableOpacity
-            onPress={handleToggleFavorite}
-            className="p-1"
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons
-              name={favorite ? "heart" : "heart-outline"}
-              size={24}
-              color={favorite ? "#EF4444" : isDark ? "#9CA3AF" : "#9CA3AF"}
-            />
-          </TouchableOpacity>
+          {/* Favorite Button y contador */}
+          <View className="flex-row items-center">
+            <TouchableOpacity
+              onPress={handleToggleFavorite}
+              className="p-1"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={favorite ? "heart" : "heart-outline"}
+                size={24}
+                color={favorite ? "#EF4444" : isDark ? "#9CA3AF" : "#9CA3AF"}
+              />
+            </TouchableOpacity>
+            <Text
+              className={`ml-1 text-sm font-medium ${
+                isDark ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
+              {favoritesCount}
+            </Text>
+          </View>
         </View>
 
         {/* Address */}
