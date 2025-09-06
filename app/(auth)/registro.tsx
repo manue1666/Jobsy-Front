@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useColorScheme } from 'react-native';
 
@@ -9,6 +9,7 @@ import { AppLogo } from '@/components/authComponents/AppLogo';
 import { FormInput } from '@/components/authComponents/FormInput';
 import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
 import { Checkbox } from '@/components/authComponents/Checkbox';
+import { SuccessAlert, ErrorAlert } from '@/components/mainComponents/Alerts';
 
 import { registerUser } from '../../helpers/auth'; // Importa la función de registro
 
@@ -18,37 +19,32 @@ export default function RegistroScreen() {
   const [password, setPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successVisible, setSuccessVisible] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertTitle, setAlertTitle] = useState('');
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
   const handleRegister = async () => {
-      setLoading(true);
-      try {
-        await registerUser(name, email, password);
-        router.replace('/(auth)');
-        Alert.alert('Éxito','Registro completado. Ahora puedes iniciar sesión',[
-          {
-            text : 'OK'
-          }
-          ], {
-          cancelable : true
-          });
-        console.log("Usuario registrado exitosamente")
-      } catch (err: any) {
-        // err.message vendrá de nuestros “throw new Error()”
-        Alert.alert('Error',err.message || 'Error al registrar usuario',[
-          {
-            text : 'OK'
-          }
-          ], {
-          cancelable : true
-          });
-        console.log(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(true);
+    try {
+      await registerUser(name, email, password);
+      setAlertTitle('Éxito');
+      setAlertMessage('Registro completado. Ahora puedes iniciar sesión');
+      setSuccessVisible(true);
+      router.replace('/(auth)');
+      console.log("Usuario registrado exitosamente");
+    } catch (err: any) {
+      setAlertTitle('Error');
+      setAlertMessage(err.message || 'Error al registrar usuario');
+      setErrorVisible(true);
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const isFormValid = name.length > 0 && email.length > 0 && password.length > 0 && acceptTerms;
 
@@ -116,6 +112,18 @@ export default function RegistroScreen() {
           
         </FormCard>
       </View>
+      <SuccessAlert
+        visible={successVisible}
+        title={alertTitle}
+        message={alertMessage}
+        onClose={() => setSuccessVisible(false)}
+      />
+      <ErrorAlert
+        visible={errorVisible}
+        title={alertTitle}
+        message={alertMessage}
+        onClose={() => setErrorVisible(false)}
+      />
     </ScreenContainer>
   );
 }
