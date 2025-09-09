@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
-import { View, Text, TouchableOpacity, Image, Alert, ActivityIndicator, } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,7 +14,8 @@ import { getUserProfile, updateUserProfile } from "../../helpers/profile";
 import { router, Stack } from "expo-router";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { FormInput } from "@/components/authComponents/FormInput";
-import { ThemeContext } from '@/context/themeContext';
+import { ThemeContext } from "@/context/themeContext";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 export default function EditProfileScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -19,21 +27,18 @@ export default function EditProfileScreen() {
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+  const { okAlert, errAlert } = useAlert();
 
   useEffect(() => {
     (async () => {
       const { status } =
         await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert('Permiso requerido','Se necesita acceso a la galería para cambiar la imagen',[
-          {
-            text : 'OK'
-          }
-          ], {
-          cancelable : true
-          });
+        errAlert(
+          "Permiso denegado",
+          "Se necesita permiso para acceder a las fotos"
+        );
       }
-
       loadProfileData();
     })();
   }, []);
@@ -49,13 +54,7 @@ export default function EditProfileScreen() {
         setImageUri(data.user.profilePhoto || "");
       }
     } catch (err: any) {
-      Alert.alert('Error',err.message || "Error al obtener el perfil",[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
+      errAlert('Error', err.message || 'No se pudo cargar la información del perfil');
       console.log(err);
     } finally {
       setLoading(false);
@@ -94,13 +93,18 @@ export default function EditProfileScreen() {
     }
 
     setErrors({});
-    Alert.alert('Datos actualizados',`Nombre: ${name}\nCorreo: ${email}`,[
+    Alert.alert(
+      "Datos actualizados",
+      `Nombre: ${name}\nCorreo: ${email}`,
+      [
+        {
+          text: "OK",
+        },
+      ],
       {
-        text : 'OK'
+        cancelable: true,
       }
-      ], {
-      cancelable : true
-      });
+    );
 
     try {
       const userId = profileData?.user._id;
@@ -109,23 +113,11 @@ export default function EditProfileScreen() {
         { name, email }, // Datos normales
         imageUri !== profileData?.user.profilePhoto ? imageUri : null // Solo si es nueva imagen
       );
-      Alert.alert('Éxito','Perfil actualizado',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
+      okAlert("Éxito", "Perfil actualizado correctamente");
       router.back();
     } catch (error) {
-      console.log(error)
-      Alert.alert('Error','error al actualizar los datos',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
+      console.log(error);
+      errAlert("Error", "No se pudo actualizar el perfil. Intenta más tarde.");
     }
   };
 
@@ -135,7 +127,7 @@ export default function EditProfileScreen() {
         <Stack.Screen
           name="ChangeProfile"
           options={{
-            title: 'Editar perfil',
+            title: "Editar perfil",
             headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" }, // Cambia el fondo del header
             headerTintColor: isDark ? "#ffffff" : "#000000", // Cambia el color del texto y flecha
           }}

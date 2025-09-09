@@ -8,6 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
 import { OwnedServiceCard } from '@/components/mainComponents/principal/OwnedService';
 import { ServiceToBoost } from '@/components/mainComponents/principal/serviceBoost';
+import { useAlert } from '@/components/mainComponents/Alerts';
 
 
 // Boost plans info
@@ -30,6 +31,7 @@ export default function BoostHomeScreen() {
   const router = useRouter();
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
+  const { okAlert, errAlert } = useAlert();
 
   // Fetch user's services
   useEffect(() => {
@@ -44,7 +46,7 @@ export default function BoostHomeScreen() {
           profilePic: service.user_id?.profilePhoto
         })));
       } catch (error: any) {
-        Alert.alert('Error', error.message || 'Error al cargar servicios');
+        errAlert('Error', error.message || 'No se pudieron cargar los servicios');
       } finally {
         setLoading(false);
       }

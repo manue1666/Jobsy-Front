@@ -1,47 +1,74 @@
-import React from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { View, Text, Modal, TouchableOpacity } from 'react-native';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
-type AlertProps = {
+type AlertType = 'success' | 'error';
+
+type AlertState = {
   visible: boolean;
-  title?: string;
+  type: AlertType;
+  title: string;
   message: string;
-  onClose: () => void;
 };
 
-export const SuccessAlert: React.FC<AlertProps> = ({ visible, title = 'Éxito', message, onClose }) => (
-  <Modal
-    transparent
-    visible={visible}
-    animationType="fade"
-    onRequestClose={onClose}
-  >
-    <View className="flex-1 bg-black/30 justify-center items-center">
-      <View className="w-72 p-6 rounded-xl items-center bg-green-50 border-2 border-green-500">
-        <Text className="text-xl font-bold mb-3 text-green-700">{title}</Text>
-        <Text className="text-base mb-5 text-center text-green-900">{message}</Text>
-        <TouchableOpacity className="bg-green-600 px-6 py-2 rounded-lg" onPress={onClose}>
-          <Text className="text-white font-bold text-base">OK</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </Modal>
-);
+type AlertContextType = {
+  okAlert: (title: string, message: string) => void;
+  errAlert: (title: string, message: string) => void;
+};
 
-export const ErrorAlert: React.FC<AlertProps> = ({ visible, title = 'Error', message, onClose }) => (
-  <Modal
-    transparent
-    visible={visible}
-    animationType="fade"
-    onRequestClose={onClose}
-  >
-    <View className="flex-1 bg-black/30 justify-center items-center">
-      <View className="w-72 p-6 rounded-xl items-center bg-red-50 border-2 border-red-500">
-        <Text className="text-xl font-bold mb-3 text-red-700">{title}</Text>
-        <Text className="text-base mb-5 text-center text-red-900">{message}</Text>
-        <TouchableOpacity className="bg-red-600 px-6 py-2 rounded-lg" onPress={onClose}>
-          <Text className="text-white font-bold text-base">OK</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </Modal>
-);
+const AlertContext = createContext<AlertContextType | undefined>(undefined);
+
+export const useAlert = () => {
+  const ctx = useContext(AlertContext);
+  if (!ctx) throw new Error('useAlert must be used within AlertProvider');
+  return ctx;
+};
+
+export const AlertProvider = ({ children }: { children: ReactNode }) => {
+  const [state, setState] = useState<AlertState>({
+    visible: false,
+    type: 'success',
+    title: '',
+    message: '',
+  });
+
+  const showAlert = (type: AlertType, title: string, message: string) => {
+    setState({ visible: true, type, title, message });
+  };
+
+  const okAlert = (title: string, message: string) => showAlert('success', title, message);
+  const errAlert = (title: string, message: string) => showAlert('error', title, message);
+
+  const handleClose = () => setState(s => ({ ...s, visible: false }));
+
+  return (
+    <AlertContext.Provider value={{ okAlert, errAlert }}>
+      {children}
+      <Modal
+        transparent
+        visible={state.visible}
+        animationType="fade"
+        onRequestClose={handleClose}
+      >
+        <View className="flex-1 bg-black/40 justify-center items-center">
+          <View className={`w-80 p-7 rounded-2xl items-center border ${state.type === 'success' ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400'} shadow-lg`} style={{ elevation: 8 }}>
+            <MaterialIcons
+              name={state.type === 'success' ? 'check-circle' : 'error-outline'}
+              size={56}
+              color={state.type === 'success' ? '#22c55e' : '#ef4444'}
+              style={{ marginBottom: 10 }}
+            />
+            <Text className={`text-2xl font-bold mb-2 ${state.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>{state.title}</Text>
+            <Text className={`text-base mb-6 text-center ${state.type === 'success' ? 'text-green-900' : 'text-red-900'}`}>{state.message}</Text>
+            <TouchableOpacity
+              className={`${state.type === 'success' ? 'bg-green-600' : 'bg-red-600'} px-8 py-3 rounded-full shadow`}
+              onPress={handleClose}
+            >
+              <Text className="text-white font-bold text-lg tracking-wide">OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </AlertContext.Provider>
+  );
+};

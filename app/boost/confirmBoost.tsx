@@ -5,6 +5,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemeContext } from "@/context/themeContext";
 import { boostService } from "@/helpers/boost_service";
 import { useSafeStripe } from '@/hooks/useSafeStripe';
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 function ConfirmBoostScreen() {
   const params = useLocalSearchParams<{ serviceId?: string; planId?: string; serviceName?: string }>();
@@ -15,6 +16,7 @@ function ConfirmBoostScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const { okAlert, errAlert } = useAlert();
 
   const planPrices = { '24h': 30, '72h': 70, '1week': 120 };
   const planDurations = { '24h': '24 horas', '72h': '72 horas', '1week': '1 semana' };
@@ -39,7 +41,7 @@ function ConfirmBoostScreen() {
 
   const initializePaymentSheet = async () => {
     if (!params.serviceId || !params.planId) {
-      Alert.alert("Error", "Falta información del servicio o plan");
+      errAlert("Error", "ID de servicio o plan no proporcionado");
       return false;
     }
 
@@ -66,7 +68,7 @@ function ConfirmBoostScreen() {
       return true;
     } catch (error: any) {
       console.error('Error in payment initialization:', error);
-      Alert.alert("Error", error.message || "Ocurrió un error al inicializar el pago");
+      errAlert("Error", error.message || "No se pudo iniciar el proceso de pago");
       return false;
     }
   };
@@ -89,13 +91,13 @@ function ConfirmBoostScreen() {
     } catch (error) {
       console.error('Error verifying payment:', error);
       setPaymentStatus('error');
-      Alert.alert("Error", "No se pudo verificar el estado del pago. Contacta con soporte.");
+      errAlert("Error", "No se pudo verificar el estado del pago. Por favor contacta soporte.");
     }
   };
 
   const handlePayment = async () => {
     if (!isAvailable) {
-      Alert.alert("Error", "Sistema de pagos no disponible en este momento");
+      errAlert("Error", "El sistema de pagos no está disponible en este momento.");
       return;
     }
 
@@ -135,7 +137,7 @@ function ConfirmBoostScreen() {
     } catch (error: any) {
       console.error('Payment error:', error);
       setPaymentStatus('error');
-      Alert.alert("Error en el pago", error.message || "Ocurrió un error al procesar el pago");
+      errAlert("Error", error.message || "Ocurrió un error al procesar el pago");
     } finally {
       setIsLoading(false);
     }

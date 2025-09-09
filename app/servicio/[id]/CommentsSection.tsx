@@ -1,9 +1,25 @@
 import React, { useState, useCallback, useEffect, useContext } from "react";
-import { View, Text, ActivityIndicator, ScrollView, Modal, TextInput, KeyboardAvoidingView, Platform, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { getCommentsByService, addComment, deleteComment } from "@/helpers/comments";
+import {
+  getCommentsByService,
+  addComment,
+  deleteComment,
+} from "@/helpers/comments";
 import { ThemeContext } from "@/context/themeContext";
 import { getUserProfile } from "@/helpers/profile";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 interface CommentsSectionProps {
   serviceId: string;
@@ -14,10 +30,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
   const isDark = currentTheme === "dark";
 
   // Colores dinámicos basados en el tema
-  const bgColor = isDark ? 'bg-gray-900' : 'bg-white';
-  const textColor = isDark ? 'text-gray-100' : 'text-gray-800';
-  const secondaryTextColor = isDark ? 'text-gray-300' : 'text-gray-600';
-  const cardBgColor = isDark ? 'bg-gray-800' : 'bg-gray-50';
+  const bgColor = isDark ? "bg-gray-900" : "bg-white";
+  const textColor = isDark ? "text-gray-100" : "text-gray-800";
+  const secondaryTextColor = isDark ? "text-gray-300" : "text-gray-600";
+  const cardBgColor = isDark ? "bg-gray-800" : "bg-gray-50";
 
   const [comments, setComments] = useState<any[]>([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
@@ -27,6 +43,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
   const [posting, setPosting] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [userLoading, setUserLoading] = useState(true);
+  const { okAlert, errAlert } = useAlert();
 
   // Obtener usuario autenticado (simple y directo)
   const loadProfileData = async () => {
@@ -36,9 +53,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
       setUser(data.user);
       return data.user;
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Error al obtener el perfil', [
-        { text: 'OK' }
-      ], { cancelable: true });
+      errAlert('Error', err.message || 'No se pudo cargar la información del perfil');
       console.log(err);
       return null;
     } finally {
@@ -78,7 +93,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
       setNewComment("");
       await fetchComments();
     } catch (err) {
-      Alert.alert("Error", "No se pudo agregar el comentario");
+      errAlert("Error", "No se pudo agregar el comentario");
     } finally {
       setPosting(false);
     }
@@ -99,7 +114,7 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
               await deleteComment(commentId);
               await fetchComments();
             } catch {
-              Alert.alert("Error", "No se pudo eliminar el comentario");
+              errAlert("Error", "No se pudo eliminar el comentario");
             }
           },
         },
@@ -134,7 +149,9 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
           <View className="flex-1">
             {/* Header modal */}
             <View className="flex-row items-center justify-between px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-              <Text className={`text-xl font-bold ${textColor}`}>Comentarios</Text>
+              <Text className={`text-xl font-bold ${textColor}`}>
+                Comentarios
+              </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Feather name="x" size={28} color={isDark ? "#fff" : "#111"} />
               </TouchableOpacity>
@@ -147,7 +164,9 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
               ) : commentsError ? (
                 <Text className="text-red-500">{commentsError}</Text>
               ) : comments.length === 0 ? (
-                <Text className={secondaryTextColor}>No hay comentarios aún.</Text>
+                <Text className={secondaryTextColor}>
+                  No hay comentarios aún.
+                </Text>
               ) : (
                 comments.map((c) => (
                   <View
@@ -158,7 +177,9 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
                       <Text className={`font-semibold ${textColor}`}>
                         {c.user_id?.name || "Usuario"}
                       </Text>
-                      <Text className={`mt-1 ${secondaryTextColor}`}>{c.comment}</Text>
+                      <Text className={`mt-1 ${secondaryTextColor}`}>
+                        {c.comment}
+                      </Text>
                       <Text className="text-xs text-gray-400 mt-1">
                         {new Date(c.createdAt).toLocaleDateString()}
                       </Text>

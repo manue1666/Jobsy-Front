@@ -9,7 +9,7 @@ import { AppLogo } from '@/components/authComponents/AppLogo';
 import { FormInput } from '@/components/authComponents/FormInput';
 import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
 import { Checkbox } from '@/components/authComponents/Checkbox';
-import { SuccessAlert, ErrorAlert } from '@/components/mainComponents/Alerts';
+import { useAlert } from '@/components/mainComponents/Alerts';
 
 import { registerUser } from '../../helpers/auth'; // Importa la función de registro
 
@@ -19,27 +19,19 @@ export default function RegistroScreen() {
   const [password, setPassword] = useState('');
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [successVisible, setSuccessVisible] = useState(false);
-  const [errorVisible, setErrorVisible] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertTitle, setAlertTitle] = useState('');
-
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const { okAlert, errAlert } = useAlert();
 
   const handleRegister = async () => {
     setLoading(true);
     try {
       await registerUser(name, email, password);
-      setAlertTitle('Éxito');
-      setAlertMessage('Registro completado. Ahora puedes iniciar sesión');
-      setSuccessVisible(true);
       router.replace('/(auth)');
+      okAlert('Éxito', 'Registro completado. Ahora puedes iniciar sesión');
       console.log("Usuario registrado exitosamente");
     } catch (err: any) {
-      setAlertTitle('Error');
-      setAlertMessage(err.message || 'Error al registrar usuario');
-      setErrorVisible(true);
+      errAlert('Error', err.message || 'Error al registrar usuario');
       console.log(err);
     } finally {
       setLoading(false);
@@ -98,7 +90,6 @@ export default function RegistroScreen() {
           </View>
 
           {/* Register Button */}
-
           {loading ? (
             <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
           ) : (
@@ -109,21 +100,9 @@ export default function RegistroScreen() {
               disabled={!isFormValid}
             />
           )}
-          
         </FormCard>
       </View>
-      <SuccessAlert
-        visible={successVisible}
-        title={alertTitle}
-        message={alertMessage}
-        onClose={() => setSuccessVisible(false)}
-      />
-      <ErrorAlert
-        visible={errorVisible}
-        title={alertTitle}
-        message={alertMessage}
-        onClose={() => setErrorVisible(false)}
-      />
+      {/* Las alertas locales han sido eliminadas, ahora se usan globalmente */}
     </ScreenContainer>
   );
 }

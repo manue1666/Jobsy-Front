@@ -19,18 +19,7 @@ export function useUserProfile() {
       const data = await getUserProfile();
       setProfileData(data);
     } catch (err: any) {
-      Alert.alert(
-        "Error",
-        err.message || "Error al obtener el perfil",
-        [
-          {
-            text: "OK",
-          },
-        ],
-        {
-          cancelable: true,
-        }
-      );
+      Alert.alert('Error', err.message || 'No se pudo cargar la información del perfil');
       console.error(err);
     } finally {
       setLoading(false);

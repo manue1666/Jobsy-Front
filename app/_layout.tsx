@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { AlertProvider } from '@/components/mainComponents/Alerts';
 import { DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -56,26 +57,26 @@ function RootLayoutNav() {
 
   if (skipAuth) {
     return (
-      <>
-        <StripeInitializer /> {/* Agregamos el inicializador aquí */}
+      <AlertProvider>
+        <StripeInitializer />
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         </Stack>
-      </>
-    )
+      </AlertProvider>
+    );
   }
 
   return (
     <ThemeProvider>
       <SearchRangeProvider>
-        <>
-          <StripeInitializer /> {/* Agregamos el inicializador aquí también */}
+        <AlertProvider>
+          <StripeInitializer />
           <Stack>
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           </Stack>
-        </>
+        </AlertProvider>
       </SearchRangeProvider>
     </ThemeProvider>
   );

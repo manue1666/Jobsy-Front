@@ -9,11 +9,14 @@ import { AppLogo } from '@/components/authComponents/AppLogo';
 import { FormInput } from '@/components/authComponents/FormInput';
 import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
 import { loginUser } from '../../helpers/auth'; // Importa la función de login
+import { useAlert } from '@/components/mainComponents/Alerts';
+
 
 export default function LoginScreen() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
+	const { okAlert, errAlert } = useAlert();
 
 	const colorScheme = useColorScheme();
 	const isDark = colorScheme === 'dark';
@@ -24,14 +27,7 @@ export default function LoginScreen() {
       await loginUser(email, password);
       router.replace('/(tabs)');
     } catch (err: any) {
-      // err.message vendrá de nuestros “throw new Error()”
-	  Alert.alert('Error',err.message || 'Error al iniciar sesión',[
-		{
-			text : 'OK'
-		}
-	  ], {
-		cancelable : true
-	  });
+	  errAlert('Error', err.message || 'Error al iniciar sesión');
       console.log(err);
     } finally {
       setLoading(false);

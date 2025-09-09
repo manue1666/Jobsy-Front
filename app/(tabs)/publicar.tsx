@@ -10,9 +10,9 @@ import { LocationInput } from "@/components/mainComponents/publicar/escogerLocal
 import { CategorySelector } from "@/components/mainComponents/publicar/escogerCategoria";
 import { createService } from "@/helpers/service";
 import { router, useFocusEffect } from "expo-router";
-import { getUserServices } from '@/helpers/service';
-import { getUserProfile } from '../../helpers/profile';
-
+import { getUserServices } from "@/helpers/service";
+import { getUserProfile } from "../../helpers/profile";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 interface ServiceData {
   images: string[];
@@ -47,6 +47,7 @@ export default function PublicarScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const { okAlert, errAlert } = useAlert();
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -91,7 +92,7 @@ export default function PublicarScreen() {
     try {
       setIsLoading(true);
 
-              await createService(
+      await createService(
         {
           service_name: serviceData.serviceName,
           category: selectedCategory,
@@ -103,25 +104,13 @@ export default function PublicarScreen() {
         },
         serviceData.images // Pasa las URIs de las imágenes
       );
-            Alert.alert('Éxito','Servicio publicado',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
-      
-      
+
+      okAlert("Éxito", "Servicio publicado correctamente");
 
       router.replace("/(tabs)");
     } catch (error) {
-      Alert.alert('Error','error al crear servicio',[
-        {
-          text : 'OK'
-        }
-        ], {
-        cancelable : true
-        });
+      errAlert("Error", "No se pudo publicar el servicio intenta más tarde");
+      console.error("Error al publicar el servicio:", error);
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +159,9 @@ export default function PublicarScreen() {
           {/* Aviso premium */}
           <View className="mb-4">
             <Text className="text-xs text-yellow-800 bg-yellow-100 border border-yellow-300 rounded-lg px-3 py-2">
-              <Text className="font-bold">Usuarios Premium:</Text> pueden publicar hasta 5 servicios y cada servicio puede tener hasta 9 imágenes.
+              <Text className="font-bold">Usuarios Premium:</Text> pueden
+              publicar hasta 5 servicios y cada servicio puede tener hasta 9
+              imágenes.
             </Text>
           </View>
           {/* Images Section */}

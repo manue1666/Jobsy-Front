@@ -4,6 +4,7 @@ import { getNearbyServices, searchService } from '@/helpers/search_service';
 import { addFavorite, removeFavorite } from '@/helpers/favorites';
 import { getUserLocation } from '@/helpers/location';
 import { useSearchRange } from "@/context/searchRangeContext";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 export interface ServicePost {
   id: string;
@@ -34,6 +35,7 @@ export function useServices() {
   const [loading, setLoading] = useState(true);
   const [locationLoading, setLocationLoading] = useState(false);
   const { searchRange } = useSearchRange();
+  const { okAlert, errAlert } = useAlert();
 
   const transformServiceData = useCallback(
     (apiServices: any[]): ServicePost[] => {
@@ -75,18 +77,7 @@ export function useServices() {
         setTotalPages(result.pages);
         setPage(pageNum);
       } catch (error: any) {
-        Alert.alert(
-          "Error",
-          error.message || "Error al cargar servicios",
-          [
-            {
-              text: "OK",
-            },
-          ],
-          {
-            cancelable: true,
-          }
-        );
+        errAlert("Error", error.message || "No se pudieron cargar los servicios");
       } finally {
         setLoading(false);
         setIsRefreshing(false);
@@ -112,18 +103,7 @@ export function useServices() {
         );
       } catch (error: any) {
         console.error("Error al actualizar favorito:", error);
-        Alert.alert(
-          "Error",
-          error.message || "No se pudo actualizar el favorito",
-          [
-            {
-              text: "OK",
-            },
-          ],
-          {
-            cancelable: true,
-          }
-        );
+        errAlert("Error", error.message || "No se pudo actualizar el favorito");
       }
     },
     []
@@ -137,18 +117,7 @@ export function useServices() {
       const nearbyServices = await getNearbyServices(coords, searchRange);
       setServices(transformServiceData(nearbyServices));
     } catch (error: any) {
-      Alert.alert(
-        "Error",
-        error.message || "No se pudieron cargar servicios cercanos",
-        [
-          {
-            text: "OK",
-          },
-        ],
-        {
-          cancelable: true,
-        }
-      );
+      errAlert("Error", error.message || "No se pudieron cargar los servicios cercanos");
       console.error(error);
     } finally {
       setLocationLoading(false);

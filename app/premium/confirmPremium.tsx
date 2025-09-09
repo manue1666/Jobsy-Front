@@ -12,6 +12,7 @@ import { ThemeContext } from "@/context/themeContext";
 import { premiumUserService } from "@/helpers/premium_user";
 import { useSafeStripe } from "@/hooks/useSafeStripe";
 import {sendEmail} from "@/helpers/email";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 function ConfirmPremiumScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -22,6 +23,7 @@ function ConfirmPremiumScreen() {
     "idle" | "processing" | "success" | "error"
   >("idle");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const { okAlert, errAlert } = useAlert();
 
   const {
     initPaymentSheet,
@@ -61,17 +63,14 @@ function ConfirmPremiumScreen() {
       }
       return true;
     } catch (error: any) {
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un error al inicializar el pago"
-      );
+      errAlert("Error", error.message || "No se pudo iniciar el proceso de pago");
       return false;
     }
   };
 
   const handlePayment = async () => {
     if (!isAvailable) {
-      Alert.alert("Error", "Sistema de pagos no disponible en este momento");
+      errAlert("Error", "Sistema de pagos no disponible en este momento");
       return;
     }
     setIsLoading(true);
@@ -90,7 +89,7 @@ function ConfirmPremiumScreen() {
           );
         } else {
           setPaymentStatus("idle");
-          Alert.alert("Pago cancelado", "El proceso de pago fue cancelado.");
+          errAlert("Pago cancelado", "Has cancelado el proceso de pago");
         }
       } else {
         setPaymentStatus("success");
@@ -103,18 +102,15 @@ function ConfirmPremiumScreen() {
         //EL CONTENIDO DEL PLAN PREMIUM
         try{
           const response = await sendEmail();
-          Alert.alert('CORREO ENVIADO', 'NOTIFICACION DE SUSCRIPCION CON EXITO');
+          okAlert("CORREO ENVIADO", "Revisa tu correo para más información sobre tu suscripción Premium");
         }catch(err){
-          Alert.alert('CORREO NO ENVIADO', 'OCURRIO UN ERROR')
+          errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
         }
         
       }
     } catch (error: any) {
       setPaymentStatus("error");
-      Alert.alert(
-        "Error",
-        error.message || "Ocurrió un error al procesar el pago"
-      );
+      errAlert("Error", error.message || "Ocurrió un error al procesar el pago");
     } finally {
       setIsLoading(false);
     }

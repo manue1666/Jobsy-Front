@@ -11,6 +11,7 @@ import { CategorySelector } from "@/components/mainComponents/publicar/escogerCa
 import { updateService } from "@/helpers/service";
 import { getServiceById } from "@/helpers/service_detail";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 interface ServiceData {
   images: string[];
@@ -46,6 +47,7 @@ export default function PublicarScreen() {
     serviceTypes: [], // Ahora es opcional
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const { okAlert, errAlert } = useAlert();
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -100,11 +102,11 @@ export default function PublicarScreen() {
         email: serviceData.email,
       });
 
-      Alert.alert("Éxito", "Servicio actualizado correctamente");
+      okAlert("Éxito", "Servicio actualizado correctamente");
       console.log(updated);
       router.back();
     } catch (err) {
-      Alert.alert("Error", "No se pudo actualizar el servicio");
+      errAlert("Error", "No se pudo actualizar el servicio");
     } finally {
       setIsLoading(false);
     }
@@ -134,14 +136,7 @@ export default function PublicarScreen() {
       });
       return data;
     } catch (err: any) {
-      Alert.alert('Error', err.message || 'Error al obtener la informacion del servicio', [
-        {
-          text: 'OK',
-          onPress: () => router.back()
-        }
-      ], {
-        cancelable: true
-      });
+      errAlert("Error", err.message || "No se pudo cargar el servicio");
       console.log(err);
       return null;
     } finally {

@@ -1,11 +1,26 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, ActivityIndicator, ScrollView, Image, Linking, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+  Linking,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { getServiceById, Service } from "@/helpers/service_detail";
-import { FontAwesome, MaterialIcons, Feather, Ionicons } from "@expo/vector-icons";
+import {
+  FontAwesome,
+  MaterialIcons,
+  Feather,
+  Ionicons,
+} from "@expo/vector-icons";
 import { ThemeContext } from "@/context/themeContext";
 import { AuthContext } from "@/context/authContext";
 import CommentsSection from "./CommentsSection";
+import { useAlert } from "@/components/mainComponents/Alerts";
 
 export default function ServiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -15,16 +30,17 @@ export default function ServiceDetailScreen() {
   const { currentTheme } = useContext(ThemeContext);
   const { user } = useContext(AuthContext); // user._id para comparar
   const isDark = currentTheme === "dark";
+  const { okAlert, errAlert } = useAlert();
 
   // Colores dinámicos basados en el tema
-  const bgColor = isDark ? 'bg-gray-900' : 'bg-white';
-  const textColor = isDark ? 'text-gray-100' : 'text-gray-800';
-  const secondaryTextColor = isDark ? 'text-gray-300' : 'text-gray-600';
-  const cardBgColor = isDark ? 'bg-gray-800' : 'bg-gray-50';
-  const buttonSecondaryBg = isDark ? 'bg-gray-700' : 'bg-gray-200';
-  const buttonSecondaryText = isDark ? 'text-gray-200' : 'text-gray-700';
-  const tagBgColor = isDark ? 'bg-blue-900' : 'bg-blue-100';
-  const tagTextColor = isDark ? 'text-blue-200' : 'text-blue-800';
+  const bgColor = isDark ? "bg-gray-900" : "bg-white";
+  const textColor = isDark ? "text-gray-100" : "text-gray-800";
+  const secondaryTextColor = isDark ? "text-gray-300" : "text-gray-600";
+  const cardBgColor = isDark ? "bg-gray-800" : "bg-gray-50";
+  const buttonSecondaryBg = isDark ? "bg-gray-700" : "bg-gray-200";
+  const buttonSecondaryText = isDark ? "text-gray-200" : "text-gray-700";
+  const tagBgColor = isDark ? "bg-blue-900" : "bg-blue-100";
+  const tagTextColor = isDark ? "text-blue-200" : "text-blue-800";
 
   useEffect(() => {
     const fetchService = async () => {
@@ -52,13 +68,7 @@ export default function ServiceDetailScreen() {
       if (supported) {
         Linking.openURL(url);
       } else {
-        Alert.alert('Error','No se pudo abrir WhatsApp',[
-          {
-            text : 'OK'
-          }
-          ], {
-          cancelable : true
-          });
+        errAlert("Error", "No se pudo abrir WhatsApp");
       }
     });
   };
@@ -96,7 +106,9 @@ export default function ServiceDetailScreen() {
   if (!service) {
     return (
       <View className={`flex-1 justify-center items-center ${bgColor}`}>
-        <Text className={`text-lg ${secondaryTextColor}`}>Servicio no encontrado</Text>
+        <Text className={`text-lg ${secondaryTextColor}`}>
+          Servicio no encontrado
+        </Text>
       </View>
     );
   }
@@ -135,7 +147,9 @@ export default function ServiceDetailScreen() {
       <View className="p-6">
         {/* Descripción */}
         <View className="mb-6">
-          <Text className={`text-lg font-semibold mb-2 ${textColor}`}>Descripción</Text>
+          <Text className={`text-lg font-semibold mb-2 ${textColor}`}>
+            Descripción
+          </Text>
           <Text className={secondaryTextColor}>{service.description}</Text>
         </View>
 
@@ -197,14 +211,20 @@ export default function ServiceDetailScreen() {
             onPress={handleEmailPress}
             className={`${buttonSecondaryBg} py-3 px-6 rounded-full flex-row items-center justify-center mb-6`}
           >
-            <Feather name="mail" size={20} color={isDark ? '#E5E7EB' : '#4B5563'} />
+            <Feather
+              name="mail"
+              size={20}
+              color={isDark ? "#E5E7EB" : "#4B5563"}
+            />
             <Text className={`ml-2 ${buttonSecondaryText}`}>Enviar correo</Text>
           </TouchableOpacity>
         )}
 
         {/* Detalles adicionales */}
         <View className={`${cardBgColor} p-4 rounded-lg`}>
-          <Text className={`font-semibold mb-2 ${textColor}`}>Detalles del servicio</Text>
+          <Text className={`font-semibold mb-2 ${textColor}`}>
+            Detalles del servicio
+          </Text>
 
           <View className="space-y-2">
             <View className="flex-row justify-between">
@@ -235,7 +255,9 @@ export default function ServiceDetailScreen() {
         {/* Galería de imágenes */}
         {service.photos.length > 1 && (
           <View className="mt-6">
-            <Text className={`text-lg font-semibold mb-3 ${textColor}`}>Galería</Text>
+            <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
+              Galería
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {service.photos.map((photo, index) => (
                 <TouchableOpacity
@@ -255,7 +277,7 @@ export default function ServiceDetailScreen() {
         )}
 
         {/* Sección de comentarios */}
-        <CommentsSection serviceId={id as string}/>
+        <CommentsSection serviceId={id as string} />
       </View>
     </ScrollView>
   );
