@@ -7,6 +7,8 @@ import {
   Image,
   Linking,
   TouchableOpacity,
+  Modal,
+  Pressable,
   Alert,
 } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
@@ -31,6 +33,8 @@ export default function ServiceDetailScreen() {
   const { user } = useContext(AuthContext); // user._id para comparar
   const isDark = currentTheme === "dark";
   const { okAlert, errAlert } = useAlert();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Colores dinámicos basados en el tema
   const bgColor = isDark ? "bg-gray-900" : "bg-white";
@@ -115,168 +119,203 @@ export default function ServiceDetailScreen() {
 
   return (
     <ScrollView className={bgColor}>
-      {/* Header con imagen */}
-      <View className="relative h-64">
+      {/* Header con imagen y título */}
+      <View className="relative h-64 mb-4">
         {service.photos.length > 0 ? (
           <Image
             source={{ uri: service.photos[0] }}
-            className="w-full h-full"
+            className="w-full h-full rounded-b-3xl"
             resizeMode="cover"
           />
         ) : (
-          <View className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+          <View className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center rounded-b-3xl">
             <Ionicons name="image-outline" size={48} color="#9CA3AF" />
           </View>
         )}
-
-        {/* Overlay para el título */}
-        <View className="absolute bottom-0 left-0 right-0 h-32 bg-black/50" />
-
-        <View className="absolute bottom-4 left-4">
-          <Text className="text-white text-3xl font-bold">
-            {service.service_name}
-          </Text>
-          <View className="flex-row items-center mt-1">
-            <MaterialIcons name="category" size={16} color="white" />
-            <Text className="text-white ml-1">{service.category}</Text>
+        {/* Overlay para el título con fondo oscuro y transparencia */}
+        <View className="absolute bottom-6 left-6 right-6">
+          <View className="bg-black/60 rounded-xl px-4 py-3">
+            <Text className="text-white text-3xl font-bold drop-shadow-lg">
+              {service.service_name}
+            </Text>
+            <View className="flex-row items-center mt-1">
+              <MaterialIcons name="category" size={16} color="white" />
+              <Text className="text-white ml-1 text-base drop-shadow-lg">
+                {service.category}
+              </Text>
+            </View>
           </View>
         </View>
       </View>
 
-      {/* Contenido principal */}
-      <View className="p-6">
-        {/* Descripción */}
-        <View className="mb-6">
-          <Text className={`text-lg font-semibold mb-2 ${textColor}`}>
-            Descripción
-          </Text>
-          <Text className={secondaryTextColor}>{service.description}</Text>
+      {/* Card: Descripción */}
+      <View
+        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
+      >
+        <Text className={`text-lg font-semibold mb-2 ${textColor}`}>
+          Descripción
+        </Text>
+        <Text className={secondaryTextColor}>{service.description}</Text>
+      </View>
+
+      {/* Card: Información de contacto */}
+      <View
+        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
+      >
+        <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
+          Información de contacto
+        </Text>
+        <View className="space-y-3">
+          {service.phone && (
+            <View className="flex-row items-center">
+              <Feather name="phone" size={20} color="#3B82F6" />
+              <Text className={`ml-3 ${textColor}`}>{service.phone}</Text>
+            </View>
+          )}
+
+          {service.email && (
+            <View className="flex-row items-center">
+              <Feather name="mail" size={20} color="#3B82F6" />
+              <Text className={`ml-3 ${textColor}`}>{service.email}</Text>
+            </View>
+          )}
+
+          {service.address && (
+            <View className="flex-row items-start">
+              <Feather name="map-pin" size={20} color="#3B82F6" />
+              <Text className={`ml-3 flex-1 ${textColor}`}>
+                {service.address}
+              </Text>
+            </View>
+          )}
         </View>
-
-        {/* Información de contacto */}
-        <View className="mb-6">
-          <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
-            Información de contacto
-          </Text>
-
-          <View className="space-y-3">
-            {service.phone && (
-              <View className="flex-row items-center">
-                <Feather name="phone" size={20} color="#3B82F6" />
-                <Text className={`ml-3 ${textColor}`}>{service.phone}</Text>
-              </View>
-            )}
-
-            {service.email && (
-              <View className="flex-row items-center">
-                <Feather name="mail" size={20} color="#3B82F6" />
-                <Text className={`ml-3 ${textColor}`}>{service.email}</Text>
-              </View>
-            )}
-
-            {service.address && (
-              <View className="flex-row items-start">
-                <Feather name="map-pin" size={20} color="#3B82F6" />
-                <Text className={`ml-3 flex-1 ${textColor}`}>
-                  {service.address}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-
         {/* Botones de acción */}
-        <View className="flex-row justify-between mb-6">
+        <View className="flex-row justify-between mt-6">
           <TouchableOpacity
             onPress={handleWhatsAppPress}
-            className="bg-green-500 py-3 px-6 rounded-full flex-row items-center justify-center flex-1 mr-2"
+            className="bg-green-500 py-3 px-6 rounded-full flex-row items-center justify-center flex-1 mr-2 shadow"
             disabled={!service.phone}
           >
             <FontAwesome name="whatsapp" size={20} color="white" />
             <Text className="text-white ml-2">WhatsApp</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
             onPress={handleCallPress}
-            className="bg-blue-500 py-3 px-6 rounded-full flex-row items-center justify-center flex-1 ml-2"
+            className="bg-blue-500 py-3 px-6 rounded-full flex-row items-center justify-center flex-1 ml-2 shadow"
             disabled={!service.phone}
           >
             <Feather name="phone" size={20} color="white" />
             <Text className="text-white ml-2">Llamar</Text>
           </TouchableOpacity>
         </View>
-
         {service.email && (
           <TouchableOpacity
             onPress={handleEmailPress}
-            className={`${buttonSecondaryBg} py-3 px-6 rounded-full flex-row items-center justify-center mb-6`}
+            className={`${buttonSecondaryBg} py-3 px-6 rounded-full flex-row items-center justify-center mt-4 shadow`}
           >
             <Feather
               name="mail"
               size={20}
               color={isDark ? "#E5E7EB" : "#4B5563"}
             />
-            <Text className={`ml-2 ${buttonSecondaryText}`}>Enviar correo</Text>
+            <Text className={`ml-2 ${buttonSecondaryText}`}>
+              Enviar correo
+            </Text>
           </TouchableOpacity>
         )}
+      </View>
 
-        {/* Detalles adicionales */}
-        <View className={`${cardBgColor} p-4 rounded-lg`}>
-          <Text className={`font-semibold mb-2 ${textColor}`}>
-            Detalles del servicio
-          </Text>
+      {/* Card: Detalles adicionales */}
+      <View
+        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
+      >
+        <Text className={`font-semibold mb-2 ${textColor}`}>
+          Detalles del servicio
+        </Text>
 
-          <View className="space-y-2">
-            <View className="flex-row justify-between">
-              <Text className={secondaryTextColor}>Publicado el:</Text>
-              <Text className={textColor}>
-                {new Date(service.createdAt).toLocaleDateString()}
-              </Text>
-            </View>
-
-            {service.tipo && service.tipo.length > 0 && (
-              <View className="flex-row justify-between">
-                <Text className={secondaryTextColor}>Tipo:</Text>
-                <View className="flex-row flex-wrap justify-end flex-1">
-                  {service.tipo.map((tipo, index) => (
-                    <View
-                      key={index}
-                      className={`${tagBgColor} px-2 py-1 rounded-full ml-1 mb-1`}
-                    >
-                      <Text className={`text-xs ${tagTextColor}`}>{tipo}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {/* Galería de imágenes */}
-        {service.photos.length > 1 && (
-          <View className="mt-6">
-            <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
-              Galería
+        <View className="space-y-2">
+          <View className="flex-row justify-between">
+            <Text className={secondaryTextColor}>Publicado el:</Text>
+            <Text className={textColor}>
+              {new Date(service.createdAt).toLocaleDateString()}
             </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {service.photos.map((photo, index) => (
-                <TouchableOpacity
-                  key={index}
-                  className="mr-3"
-                  activeOpacity={0.8}
-                >
-                  <Image
-                    source={{ uri: photo }}
-                    className="w-32 h-32 rounded-lg"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
           </View>
-        )}
 
-        {/* Sección de comentarios */}
+          {service.tipo && service.tipo.length > 0 && (
+            <View className="flex-row justify-between">
+              <Text className={secondaryTextColor}>Tipo:</Text>
+              <View className="flex-row flex-wrap justify-end flex-1">
+                {service.tipo.map((tipo, index) => (
+                  <View
+                    key={index}
+                    className={`${tagBgColor} px-2 py-1 rounded-full ml-1 mb-1`}
+                  >
+                    <Text className={`text-xs ${tagTextColor}`}>{tipo}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Card: Galería de imágenes */}
+      {service.photos.length > 1 && (
+        <View
+          className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
+        >
+          <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
+            Galería
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {service.photos.map((photo, index) => (
+              <TouchableOpacity
+                key={index}
+                className="mr-3"
+                activeOpacity={0.8}
+                onPress={() => {
+                  setSelectedImage(photo);
+                  setModalVisible(true);
+                }}
+              >
+                <Image
+                  source={{ uri: photo }}
+                  className="w-32 h-32 rounded-lg"
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          {/* Modal para imagen en pantalla completa */}
+          <Modal
+            visible={modalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View className="flex-1 bg-black/90 justify-center items-center">
+              <Pressable
+                className="absolute top-10 right-10 z-10"
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={36} color="#fff" />
+              </Pressable>
+              {selectedImage && (
+                <Image
+                  source={{ uri: selectedImage }}
+                  className="w-80 h-80 rounded-2xl"
+                  resizeMode="contain"
+                />
+              )}
+            </View>
+          </Modal>
+        </View>
+      )}
+
+      {/* Card: Sección de comentarios */}
+      <View
+        className={`mx-4 mb-8 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
+      >
         <CommentsSection serviceId={id as string} />
       </View>
     </ScrollView>

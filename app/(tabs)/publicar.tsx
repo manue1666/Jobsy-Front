@@ -47,6 +47,7 @@ export default function PublicarScreen() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isPremium, setIsPremium] = useState<boolean>(false);
+  const [servicesCount, setServicesCount] = useState<number>(0);
   const { okAlert, errAlert } = useAlert();
 
   const validateForm = (): boolean => {
@@ -140,17 +141,22 @@ export default function PublicarScreen() {
       });
       setErrors({});
       setSelectedCategory("");
-      // Obtener si el usuario es premium
+      // Obtener si el usuario es premium y cuántos servicios tiene
       (async () => {
         try {
           const user = await getUserProfile();
           setIsPremium(!!user?.user?.isPremium);
+          setServicesCount(user?.user?.servicesCount ?? 0);
         } catch {
           setIsPremium(false);
+          setServicesCount(0);
         }
       })();
     }, [])
   );
+
+  const maxServices = isPremium ? 5 : 1;
+  const canPublish = servicesCount < maxServices;
 
   return (
     <ScreenContainer>
@@ -164,6 +170,15 @@ export default function PublicarScreen() {
               imágenes.
             </Text>
           </View>
+          {/* Aviso de límite de servicios */}
+          {!canPublish && (
+            <View className="mb-4">
+              <Text className="text-xs text-red-700 bg-red-100 border border-red-300 rounded-lg px-3 py-2">
+                Has alcanzado el límite de servicios permitidos (
+                {servicesCount}/{maxServices}) para tu tipo de cuenta.
+              </Text>
+            </View>
+          )}
           {/* Images Section */}
           <View className="mb-6">
             <Text className="text-sm text-gray-500 mb-2">
@@ -270,6 +285,7 @@ export default function PublicarScreen() {
               onPress={handlePublish}
               loading={isLoading}
               size="large"
+              disabled={!canPublish}
             />
           </View>
         </FormCard>
