@@ -7,7 +7,7 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { FormInput } from "@/components/authComponents/FormInput";
 import { Stack, router } from "expo-router";
-import { getUserProfile, updateUserProfile } from "../../helpers/profile";
+import { getUserProfile, updateUserPassword } from "../../helpers/profile";
 import { ThemeContext } from "@/context/themeContext";
 import { useAlert } from "@/components/mainComponents/Alerts";
 
@@ -57,12 +57,7 @@ export default function ChangePasswordScreen() {
     if (Object.keys(newErrors).length > 0) return;
 
     try {
-      const userId = profileData?._id;
-      const updatePayload = {
-        currentPassword,
-        password: newPassword,
-      };
-      await updateUserProfile(userId, updatePayload);
+      await updateUserPassword(currentPassword, newPassword);
 
       okAlert("Éxito", "Contraseña actualizada correctamente");
       router.back();
