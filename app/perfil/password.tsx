@@ -10,6 +10,7 @@ import { Stack, router } from "expo-router";
 import { getUserProfile, updateUserPassword } from "../../helpers/profile";
 import { ThemeContext } from "@/context/themeContext";
 import { useAlert } from "@/components/mainComponents/Alerts";
+import { PasswordMeter } from '@/components/authComponents/PasswordMeter';
 
 export default function ChangePasswordScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -106,6 +107,11 @@ export default function ChangePasswordScreen() {
             placeholder="Ingresa tu nueva contraseña"
             error={errors.newPassword}
           />
+
+          <Text className="text-xs text-gray-500 mb-2">
+            Usa al menos 8 caracteres, incluyendo una mayúscula, un número y un símbolo especial para mayor seguridad.
+          </Text>
+          <PasswordMeter password={newPassword} />
 
           <FormInput
             label="Confirmar nueva contraseña"

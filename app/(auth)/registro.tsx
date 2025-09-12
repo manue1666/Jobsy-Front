@@ -11,7 +11,9 @@ import { PrimaryButton } from '@/components/authComponents/PrimaryButton';
 import { Checkbox } from '@/components/authComponents/Checkbox';
 import { useAlert } from '@/components/mainComponents/Alerts';
 
+
 import { registerUser } from '../../helpers/auth'; // Importa la función de registro
+import { PasswordMeter } from '@/components/authComponents/PasswordMeter';
 
 export default function RegistroScreen() {
   const [name, setName] = useState('');
@@ -80,14 +82,28 @@ export default function RegistroScreen() {
             isRequired
           />
 
+          <Text className="text-xs text-gray-500 mb-2">
+            Usa al menos 8 caracteres, incluyendo una mayúscula, un número y un símbolo especial para mayor seguridad.
+          </Text>
+
+          {/* Password Strength Meter */}
+          <PasswordMeter password={password} />
+
           {/* Terms Checkbox */}
-          <View className="mb-6">
+          <View className="mb-2">
             <Checkbox
               checked={acceptTerms}
               onPress={() => setAcceptTerms(!acceptTerms)}
               label="Estoy de acuerdo con los términos y condiciones"
             />
           </View>
+          <Text
+            className="text-blue-500 mb-6 underline"
+            onPress={() => router.push('/opciones/terms')}
+            style={{ textAlign: 'left' }}
+          >
+            Ver términos y condiciones
+          </Text>
 
           {/* Register Button */}
           {loading ? (
@@ -102,7 +118,7 @@ export default function RegistroScreen() {
           )}
         </FormCard>
       </View>
-      {/* Las alertas locales han sido eliminadas, ahora se usan globalmente */}
+      
     </ScreenContainer>
   );
 }

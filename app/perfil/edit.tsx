@@ -93,17 +93,9 @@ export default function EditProfileScreen() {
     }
 
     setErrors({});
-    Alert.alert(
+    okAlert(
       "Datos actualizados",
-      `Nombre: ${name}\nCorreo: ${email}`,
-      [
-        {
-          text: "OK",
-        },
-      ],
-      {
-        cancelable: true,
-      }
+      `Nombre: ${name}\nCorreo: ${email}`
     );
 
     try {
