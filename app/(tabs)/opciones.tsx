@@ -43,18 +43,20 @@ export default function ProfileScreen() {
   }, []);
 
   const options = [
-/*     {
-      icon: (color: string) => <Feather name="flag" size={24} color={color} />,
-      title: "Idioma",
-      subtitle: "Cambiar el idioma de la app",
-      onPress: useSysTheme,
-    }, */
     {
       icon: (color: string) => <Feather name="moon" size={24} color={color} />,
       title: "Modo oscuro",
       subtitle: "Cambia entre modos de vista",
       toggle: false,
       onPress: () => router.push("/opciones/tema"),
+    },
+    {
+      icon: (color: string) => (
+        <Feather name="credit-card" size={24} color={color} />
+      ),
+      title: "Gestionar suscripción Premium",
+      subtitle: "Ver y administrar tu suscripción premium",
+      onPress: () => router.push("/premium/suscriptions"),
     },
     {
       icon: (color: string) => <Feather name="list" size={24} color={color} />,

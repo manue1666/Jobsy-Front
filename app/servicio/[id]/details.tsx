@@ -65,15 +65,14 @@ export default function ServiceDetailScreen() {
   const handleWhatsAppPress = () => {
     if (!service?.phone) return;
 
-    const phoneNumber = service.phone.replace(/[^\d]/g, "");
-    const url = `https://wa.me/${phoneNumber}`;
+    // Normaliza el número: solo dígitos y agrega 52 si falta
+    let phone = service.phone.replace(/[^\d]/g, "");
+    if (!phone.startsWith("52")) phone = "52" + phone;
 
-    Linking.canOpenURL(url).then((supported) => {
-      if (supported) {
-        Linking.openURL(url);
-      } else {
-        errAlert("Error", "No se pudo abrir WhatsApp");
-      }
+    const url = `https://wa.me/${phone}`;
+
+    Linking.openURL(url).catch(() => {
+      errAlert("Error", "No se pudo abrir el enlace de WhatsApp");
     });
   };
 
@@ -149,9 +148,7 @@ export default function ServiceDetailScreen() {
       </View>
 
       {/* Card: Descripción */}
-      <View
-        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
-      >
+      <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <Text className={`text-lg font-semibold mb-2 ${textColor}`}>
           Descripción
         </Text>
@@ -159,9 +156,7 @@ export default function ServiceDetailScreen() {
       </View>
 
       {/* Card: Información de contacto */}
-      <View
-        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
-      >
+      <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
           Información de contacto
         </Text>
@@ -218,17 +213,13 @@ export default function ServiceDetailScreen() {
               size={20}
               color={isDark ? "#E5E7EB" : "#4B5563"}
             />
-            <Text className={`ml-2 ${buttonSecondaryText}`}>
-              Enviar correo
-            </Text>
+            <Text className={`ml-2 ${buttonSecondaryText}`}>Enviar correo</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Card: Detalles adicionales */}
-      <View
-        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
-      >
+      <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <Text className={`font-semibold mb-2 ${textColor}`}>
           Detalles del servicio
         </Text>
@@ -261,9 +252,7 @@ export default function ServiceDetailScreen() {
 
       {/* Card: Galería de imágenes */}
       {service.photos.length > 1 && (
-        <View
-          className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
-        >
+        <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
           <Text className={`text-lg font-semibold mb-3 ${textColor}`}>
             Galería
           </Text>
@@ -313,9 +302,7 @@ export default function ServiceDetailScreen() {
       )}
 
       {/* Card: Sección de comentarios */}
-      <View
-        className={`mx-4 mb-8 p-5 rounded-2xl shadow-lg ${cardBgColor}`}
-      >
+      <View className={`mx-4 mb-8 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <CommentsSection serviceId={id as string} />
       </View>
     </ScrollView>

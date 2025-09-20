@@ -1,14 +1,15 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { useColorScheme } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { Stack } from "expo-router";
 import { AppLogo } from "@/components/authComponents/AppLogo";
+import { ThemeContext } from "@/context/themeContext";
 
 export default function InfoScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { currentTheme } = React.useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
   return (
     <ScreenContainer androidSafeArea={false}>
@@ -16,10 +17,10 @@ export default function InfoScreen() {
         options={{
           title: "Información de la aplicación",
           headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" },
-          headerTintColor: isDark ? "#ffffff" : "#000000", // Color del botón back
+          headerTintColor: isDark ? "#ffffff" : "#000000",
         }}
       />
-      <View className="flex-1 justify-center px-6">
+      <ScrollView className="flex-1 px-6">
         <FormCard title="Información de la aplicación" scrollable={false}>
           <View className="mb-8">
             <AppLogo variant="colored" size="medium" />
@@ -49,7 +50,7 @@ export default function InfoScreen() {
             tus necesidades con Jobsy!
           </Text>
         </FormCard>
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }

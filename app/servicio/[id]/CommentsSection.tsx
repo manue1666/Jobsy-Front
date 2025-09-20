@@ -53,7 +53,10 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
       setUser(data.user);
       return data.user;
     } catch (err: any) {
-      errAlert('Error', err.message || 'No se pudo cargar la información del perfil');
+      errAlert(
+        "Error",
+        err.message || "No se pudo cargar la información del perfil"
+      );
       console.log(err);
       return null;
     } finally {
@@ -198,10 +201,28 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
             </ScrollView>
 
             {/* Input para nuevo comentario */}
-            <View className="border-t border-gray-200 dark:border-gray-700 px-4 py-3 bg-white dark:bg-gray-900">
-              <View className="flex-row items-center">
+            <View
+              style={{
+                borderTopWidth: 1,
+                borderTopColor: isDark ? "#374151" : "#D1D5DB",
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                backgroundColor: isDark ? "#111827" : "#fff",
+              }}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <TextInput
-                  className={`flex-1 rounded-full px-4 py-2 border ${isDark ? "border-gray-700 text-gray-100 bg-gray-800" : "border-gray-300 text-gray-800 bg-gray-100"}`}
+                  style={{
+                    flex: 1,
+                    borderRadius: 24,
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                    borderWidth: 1,
+                    backgroundColor: isDark ? "#1F2937" : "#F3F4F6",
+                    color: isDark ? "#F3F4F6" : "#1F2937",
+                    borderColor: isDark ? "#374151" : "#D1D5DB",
+                    fontSize: 16,
+                  }}
                   placeholder="Escribe un comentario..."
                   placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
                   value={newComment}
@@ -212,7 +233,14 @@ const CommentsSection: React.FC<CommentsSectionProps> = ({ serviceId }) => {
                   onSubmitEditing={handleAddComment}
                 />
                 <TouchableOpacity
-                  className="ml-2 bg-blue-500 rounded-full px-4 py-2"
+                  style={{
+                    marginLeft: 8,
+                    backgroundColor: "#3B82F6",
+                    borderRadius: 999,
+                    paddingHorizontal: 16,
+                    paddingVertical: 10,
+                    opacity: posting || !newComment.trim() ? 0.6 : 1,
+                  }}
                   onPress={handleAddComment}
                   disabled={posting || !newComment.trim()}
                 >

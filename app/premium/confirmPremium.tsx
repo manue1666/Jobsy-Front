@@ -9,10 +9,14 @@ import {
 import { Stack, router } from "expo-router";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemeContext } from "@/context/themeContext";
-import { premiumUserService } from "@/helpers/premium_user";
+import {
+  premiumUserService,
+  createPremiumSetupIntentService,
+} from "@/helpers/premium_user";
 import { useSafeStripe } from "@/hooks/useSafeStripe";
-import {sendEmail} from "@/helpers/email";
+import { sendEmail } from "@/helpers/email";
 import { useAlert } from "@/components/mainComponents/Alerts";
+import { getUserProfile } from "@/helpers/profile";
 
 function ConfirmPremiumScreen() {
   const { currentTheme } = useContext(ThemeContext);
@@ -23,6 +27,7 @@ function ConfirmPremiumScreen() {
     "idle" | "processing" | "success" | "error"
   >("idle");
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string>("");
   const { okAlert, errAlert } = useAlert();
 
   const {
@@ -32,39 +37,85 @@ function ConfirmPremiumScreen() {
     isLoading: stripeLoading,
   } = useSafeStripe();
 
-  const planId = "monthly";
   const price = 99;
   const planLabel = "Plan mensual Premium";
 
-  const initializePaymentSheet = async () => {
+  type InitResult =
+    | { ok: true; mode: "payment" }
+    | { ok: true; mode: "poll" }
+    | { ok: false; message?: string };
+
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  const initializePaymentSheet = async (): Promise<InitResult> => {
     try {
-      const response = await premiumUserService(planId);
-      // Solo valida que exista clientSecret
-      if (!response.clientSecret) {
-        throw new Error(
-          response.message || "No se pudo iniciar el pago premium"
+      let response = await premiumUserService();
+      if (response.requiresPaymentMethod) {
+        setInfoMessage(
+          "Necesitas asociar una tarjeta antes de suscribirte. Se abrirá el formulario de Stripe para agregar tu método de pago."
         );
+        // Solicitar SetupIntent para asociar tarjeta
+        const setupIntentRes = await createPremiumSetupIntentService();
+        const { error: setupError } = await initPaymentSheet({
+          setupIntentClientSecret: setupIntentRes.setupIntentClientSecret,
+          merchantDisplayName: "Jobsy Marketplace",
+          returnURL: "jobsy://stripe-redirect",
+          style: isDark ? "alwaysDark" : "alwaysLight",
+          defaultBillingDetails: {
+            name: "Cliente Jobsy",
+          },
+        });
+        if (setupError) throw new Error(setupError.message);
+        const setupResult = await presentPaymentSheet();
+        if (setupResult.error) throw new Error(setupResult.error.message);
+        setInfoMessage("");
+        // Volver a llamar a /user/premium para crear la suscripción y obtener el clientSecret del PaymentIntent
+        response = await premiumUserService();
       }
-      setClientSecret(response.clientSecret);
+      // Pequeño delay para dar tiempo a la creación del PaymentIntent o activación vía webhook
+      await delay(2000);
 
-      const { error } = await initPaymentSheet({
-        paymentIntentClientSecret: response.clientSecret,
-        merchantDisplayName: "Jobsy Marketplace",
-        returnURL: "jobsy://stripe-redirect",
-        style: isDark ? "alwaysDark" : "alwaysLight",
-        allowsDelayedPaymentMethods: false,
-        defaultBillingDetails: {
-          name: "Cliente Jobsy",
-        },
-      });
-
-      if (error) {
-        throw new Error(`Error al configurar pago: ${error.message}`);
+      // Si el backend decidió forzar el pago off-session, no habrá clientSecret: debemos hacer polling del perfil
+      if (response.clientSecret === null) {
+        setClientSecret(null);
+        setInfoMessage(
+          "Estamos procesando tu suscripción. Esto puede tardar unos segundos..."
+        );
+        return { ok: true, mode: "poll" };
       }
-      return true;
+
+      // Si tenemos clientSecret, configuramos el PaymentSheet para confirmar el pago
+      if (response.clientSecret) {
+        setClientSecret(response.clientSecret);
+        setInfoMessage(
+          "Confirma el pago de tu suscripción en el siguiente paso. Tras el pago, tu cuenta será activada como premium en unos segundos."
+        );
+        const { error } = await initPaymentSheet({
+          paymentIntentClientSecret: response.clientSecret,
+          merchantDisplayName: "Jobsy Marketplace",
+          returnURL: "jobsy://stripe-redirect",
+          style: isDark ? "alwaysDark" : "alwaysLight",
+          allowsDelayedPaymentMethods: false,
+          defaultBillingDetails: {
+            name: "Cliente Jobsy",
+          },
+        });
+        if (error) {
+          throw new Error(`Error al configurar pago: ${error.message}`);
+        }
+        return { ok: true, mode: "payment" };
+      }
+
+      // Cualquier otro caso inesperado: pasamos a polling como fallback
+      setInfoMessage("Estamos verificando el estado de tu suscripción...");
+      return { ok: true, mode: "poll" };
     } catch (error: any) {
-      errAlert("Error", error.message || "No se pudo iniciar el proceso de pago");
-      return false;
+      setInfoMessage("");
+      errAlert(
+        "Error",
+        error.message || "No se pudo iniciar el proceso de pago"
+      );
+      return { ok: false, message: error.message };
     }
   };
 
@@ -76,11 +127,72 @@ function ConfirmPremiumScreen() {
     setIsLoading(true);
     setPaymentStatus("processing");
     try {
-      const initialized = await initializePaymentSheet();
-      if (!initialized) {
+      const init = await initializePaymentSheet();
+      if (!init.ok) {
         setIsLoading(false);
         return;
       }
+
+      if (init.mode === "poll") {
+        // Polling del estado premium hasta 20s (aprox 12 intentos cada 1.5s)
+        setInfoMessage("Procesando pago y activación de tu suscripción...");
+        const maxAttempts = 12;
+        let activated = false;
+        for (let i = 0; i < maxAttempts; i++) {
+          await delay(1500);
+          try {
+            const profile = await getUserProfile();
+            if (profile?.isPremium) {
+              activated = true;
+              break;
+            }
+          } catch {
+            // Ignorar errores transitorios de red durante el polling
+          }
+        }
+
+        if (activated) {
+          setPaymentStatus("success");
+          setInfoMessage("");
+          Alert.alert(
+            "¡Éxito!",
+            "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
+            [
+              {
+                text: "Aceptar",
+                onPress: () => router.replace("/(tabs)/perfil"),
+              },
+            ]
+          );
+          try {
+            await sendEmail();
+            okAlert(
+              "CORREO ENVIADO",
+              "Revisa tu correo para más información sobre tu suscripción Premium"
+            );
+          } catch {
+            errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+          }
+        } else {
+          setPaymentStatus("idle");
+          errAlert(
+            "Seguimos procesando",
+            "Tu pago está en proceso. Si no ves la activación en unos minutos, intenta actualizar tu perfil."
+          );
+          try {
+            await sendEmail();
+            okAlert(
+              "CORREO ENVIADO",
+              "Revisa tu correo para más información sobre tu suscripción Premium"
+            );
+          } catch {
+            errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+          }
+        }
+        return;
+      }
+
+      // Modo pago interactivo con PaymentSheet
       const { error } = await presentPaymentSheet();
       if (error) {
         if (error.code !== "Canceled") {
@@ -98,19 +210,22 @@ function ConfirmPremiumScreen() {
           "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
           [{ text: "Aceptar", onPress: () => router.replace("/(tabs)/perfil") }]
         );
-        //ENVIAR CORREO CON LOS BENEFICIOS, EL PRECIO, SU CORREO O NOMBRE Y LA DURACION
-        //EL CONTENIDO DEL PLAN PREMIUM
-        try{
-          const response = await sendEmail();
-          okAlert("CORREO ENVIADO", "Revisa tu correo para más información sobre tu suscripción Premium");
-        }catch(err){
+        try {
+          await sendEmail();
+          okAlert(
+            "CORREO ENVIADO",
+            "Revisa tu correo para más información sobre tu suscripción Premium"
+          );
+        } catch {
           errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
         }
-        
       }
     } catch (error: any) {
       setPaymentStatus("error");
-      errAlert("Error", error.message || "Ocurrió un error al procesar el pago");
+      errAlert(
+        "Error",
+        error.message || "Ocurrió un error al procesar el pago"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -202,6 +317,15 @@ function ConfirmPremiumScreen() {
             sube hasta 9 imágenes por servicio y edita tus servicios publicados.
           </Text>
         </View>
+
+        {/* Mensaje informativo del proceso */}
+        {infoMessage && (
+          <View className="bg-yellow-100 border border-yellow-300 p-3 rounded-lg mb-4">
+            <Text className="text-yellow-800 text-center text-sm">
+              {infoMessage}
+            </Text>
+          </View>
+        )}
 
         {/* Botón de pago */}
         <TouchableOpacity

@@ -5,10 +5,11 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { Stack } from "expo-router";
 import { AppLogo } from "@/components/authComponents/AppLogo";
+import { ThemeContext } from "@/context/themeContext";
 
 export default function TermsScreen() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { currentTheme } = React.useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
   return (
     <ScreenContainer androidSafeArea={false}>

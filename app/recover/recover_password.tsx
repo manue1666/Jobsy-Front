@@ -8,13 +8,14 @@ import { useColorScheme } from "react-native";
 import { useAlert } from "@/components/mainComponents/Alerts";
 import { router, Stack } from "expo-router";
 import { recoverPassword } from "@/helpers/recover_pwd";
+import { ThemeContext } from "@/context/themeContext";
 
 export default function RecoverPasswordScreen() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const { okAlert, errAlert } = useAlert();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
+  const { currentTheme } = React.useContext(ThemeContext);
+  const isDark = currentTheme === "dark";
 
 
   const handleRecover = async () => {
