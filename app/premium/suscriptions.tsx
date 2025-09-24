@@ -117,7 +117,7 @@ export default function SuscriptionsScreen() {
                   </View>
                   <View className="flex-row items-center mb-1">
                     <Feather name="dollar-sign" size={18} color={accent} />
-                    <Text className={`ml-2 ${textColor}`}>Precio: <Text className="font-semibold">{status.subscription.priceId}</Text></Text>
+                    <Text className={`ml-2 ${textColor}`}>Precio: <Text className="font-semibold">99 mxn</Text></Text>
                   </View>
                   <View className="flex-row items-center mb-1">
                     <Feather name="calendar" size={18} color={accent} />

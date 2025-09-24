@@ -67,7 +67,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
         label="Dirección"
         value={value}
         onChangeText={onChangeText}
-        placeholder="Ingresa tu dirección"
+        placeholder="Dirección (Ej: Calle y número, Ciudad, Estado)"
         isRequired
         multiline
       />

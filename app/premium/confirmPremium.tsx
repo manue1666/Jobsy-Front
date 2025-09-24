@@ -292,27 +292,17 @@ function ConfirmPremiumScreen() {
         </Text>
 
         {/* Información del plan */}
-        <View
-          className={`p-4 rounded-lg mb-6 ${isDark ? "bg-yellow-900" : "bg-yellow-100"} border border-yellow-300`}
-        >
-          <Text
-            className={`text-lg font-semibold mb-2 ${isDark ? "text-yellow-100" : "text-yellow-800"}`}
-          >
+        <View className="p-4 rounded-lg mb-6 border border-yellow-300" style={{ backgroundColor: '#18181b' }}>
+          <Text className="text-lg font-semibold mb-2 text-yellow-100">
             Resumen del plan
           </Text>
-          <Text
-            className={`mb-2 ${isDark ? "text-yellow-100" : "text-yellow-900"}`}
-          >
+          <Text className="mb-2 text-yellow-100">
             ⭐ {planLabel}
           </Text>
-          <Text
-            className={`mb-2 text-xl font-bold ${isDark ? "text-yellow-200" : "text-yellow-800"}`}
-          >
+          <Text className="mb-2 text-xl font-bold text-yellow-200">
             💰 Precio: ${price.toFixed(2)} MXN / mes
           </Text>
-          <Text
-            className={`text-sm mt-2 ${isDark ? "text-yellow-200" : "text-yellow-800"}`}
-          >
+          <Text className="text-sm mt-2 text-yellow-200">
             Disfruta de todos los beneficios premium: publica hasta 5 servicios,
             sube hasta 9 imágenes por servicio y edita tus servicios publicados.
           </Text>

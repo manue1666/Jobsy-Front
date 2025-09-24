@@ -65,11 +65,7 @@ export default function ServiceDetailScreen() {
   const handleWhatsAppPress = () => {
     if (!service?.phone) return;
 
-    // Normaliza el número: solo dígitos y agrega 52 si falta
-    let phone = service.phone.replace(/[^\d]/g, "");
-    if (!phone.startsWith("52")) phone = "52" + phone;
-
-    const url = `https://wa.me/${phone}`;
+    const url = `https://wa.me/${service.phone}`;
 
     Linking.openURL(url).catch(() => {
       errAlert("Error", "No se pudo abrir el enlace de WhatsApp");

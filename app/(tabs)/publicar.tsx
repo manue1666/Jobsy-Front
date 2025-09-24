@@ -67,7 +67,7 @@ export default function PublicarScreen() {
 
     if (!serviceData.phone.trim()) {
       newErrors.phone = "El teléfono es requerido";
-    } else if (!/^\d{10}$/.test(serviceData.phone.replace(/\s/g, ""))) {
+    } else if (!/^\d{12}$/.test(serviceData.phone.replace(/\s/g, ""))) {
       newErrors.phone = "Ingresa un teléfono válido de 10 dígitos";
     }
 
@@ -109,8 +109,15 @@ export default function PublicarScreen() {
       okAlert("Éxito", "Servicio publicado correctamente");
 
       router.replace("/(tabs)");
-    } catch (error) {
-      errAlert("Error", "No se pudo publicar el servicio intenta más tarde");
+    } catch (error: any) {
+      if (error?.message && error.message.toLowerCase().includes("geocodific")) {
+        errAlert(
+          "Dirección inválida",
+          "No pudimos encontrar la ubicación. Verifica que la dirección sea correcta y específica."
+        );
+      } else {
+        errAlert("Error", "No se pudo publicar el servicio intenta más tarde");
+      }
       console.error("Error al publicar el servicio:", error);
     } finally {
       setIsLoading(false);
@@ -246,7 +253,7 @@ export default function PublicarScreen() {
             label="Teléfono"
             value={serviceData.phone}
             onChangeText={(text) => updateServiceData("phone", text)}
-            placeholder="Ej: 4491234567"
+            placeholder="Ej: (52)2221234567"
             error={errors.phone}
             isRequired
             keyboardType="phone-pad"

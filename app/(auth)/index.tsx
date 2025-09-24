@@ -32,7 +32,11 @@ export default function LoginScreen() {
       await loginUser(email, password);
       router.replace("/(tabs)");
     } catch (err: any) {
-      errAlert("Error", err.message || "Error al iniciar sesión");
+      if (err?.status === 404 || err?.message?.includes("404")) {
+        errAlert("Error", "Credenciales incorrectas");
+      } else {
+        errAlert("Error", err.message || "Error al iniciar sesión");
+      }
       console.log(err);
     } finally {
       setLoading(false);

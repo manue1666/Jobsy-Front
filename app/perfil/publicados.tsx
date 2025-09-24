@@ -101,7 +101,10 @@ export default function MainFeedScreen() {
                 okAlert("Éxito", "Servicio eliminado correctamente");
               }
             } catch (error: any) {
-              errAlert("Error", error.message || "No se pudo eliminar el servicio");
+              errAlert(
+                "Error",
+                error.message || "No se pudo eliminar el servicio"
+              );
             }
           },
         },
@@ -172,6 +175,24 @@ export default function MainFeedScreen() {
               </Text>
             </View>
           )}
+          {/* Aviso de edición/eliminación */}
+          <View className="mx-4 my-4 p-4 rounded-xl bg-blue-100 border border-blue-300 flex-row items-center">
+            <Ionicons
+              name="information-circle"
+              size={24}
+              color="#2563eb"
+              style={{ marginRight: 10 }}
+            />
+            <Text
+              className="text-blue-800 font-semibold"
+              style={{ flex: 1, flexWrap: "wrap" }}
+            >
+              Aquí puedes <Text className="font-bold">editar</Text> tus
+              servicios tocando sobre ellos, o{" "}
+              <Text className="font-bold">eliminar</Text> manteniendo
+              presionado.
+            </Text>
+          </View>
           {/* Lista de servicios */}
           {services.map((service) => (
             <OwnedServiceCard
