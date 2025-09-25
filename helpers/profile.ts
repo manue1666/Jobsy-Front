@@ -22,6 +22,25 @@ export const getUserProfile = async () => {
   }
 };
 
+export const viewUserProfile = async (userId: string) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    if (!token) throw new Error("No token found");
+
+    const response = await api.get(`/user/data/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    const message = error.response?.data?.error || "Error al obtener perfil de usuario";
+    throw new Error(message);
+  }
+};
+
 export const deleteUserProfile = async (userId: string) => {
   try {
     const token = await AsyncStorage.getItem("token");

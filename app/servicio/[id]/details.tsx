@@ -11,7 +11,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { getServiceById, Service } from "@/helpers/service_detail";
 import {
   FontAwesome,
@@ -25,7 +25,7 @@ import CommentsSection from "./CommentsSection";
 import { useAlert } from "@/components/mainComponents/Alerts";
 
 export default function ServiceDetailScreen() {
-  const { id, personName: personNameParam } = useLocalSearchParams<{ id: string; personName?: string }>();
+  const { id, personName: personNameParam, profilePhoto: profilePhotoParam } = useLocalSearchParams<{ id: string; personName?: string; profilePhoto?: string }>();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -35,6 +35,7 @@ export default function ServiceDetailScreen() {
   const { okAlert, errAlert } = useAlert();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const router = useRouter();
 
   // Colores dinámicos basados en el tema
   const bgColor = isDark ? "bg-gray-900" : "bg-white";
@@ -112,6 +113,11 @@ export default function ServiceDetailScreen() {
     );
   }
 
+  // Helper para obtener el id del publicador
+  const publisherId = (service?.user && (service.user as any)._id) ||
+    (typeof service?.user_id === 'object' && (service.user_id as any)._id) ||
+    (typeof service?.user_id === 'string' ? service.user_id : undefined);
+
   return (
     <ScrollView className={bgColor}>
       {/* Header con imagen y título */}
@@ -143,27 +149,35 @@ export default function ServiceDetailScreen() {
         </View>
       </View>
 
-      {/* Card: Datos del usuario debajo del header */}
-      <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor} flex-row items-center`}>
-        {(() => {
-          const publisherObj = typeof service.user_id === 'object' ? service.user_id : undefined;
-          const photo = service.user?.profilePhoto || publisherObj?.profilePhoto || "https://imgs.search.brave.com/F3S732RuH1idxV7dDfEqAM9vKEJhhxQ-XP8pb4iaOmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzllLzgz/Lzc1LzllODM3NTI4/ZjAxY2YzZjQyMTE5/YzVhZWVlZDFiMzM2/LmpwZw";
-          const name = service.user?.name || publisherObj?.name || personNameParam || 'Usuario';
-          return (
-            <>
-              <Image
-                source={{ uri: photo }}
-                className="w-16 h-16 rounded-full mr-4 border-2 border-blue-400"
-                resizeMode="cover"
-              />
-              <View>
-                <Text className={`text-lg font-semibold ${textColor}`}>{name}</Text>
-                <Text className={`text-sm ${secondaryTextColor}`}>Publicador</Text>
-              </View>
-            </>
-          );
-        })()}
-      </View>
+      {/* Card: Datos del usuario debajo del header (clickable) */}
+      <TouchableOpacity
+        disabled={!publisherId}
+        onPress={() => {
+          if (publisherId) {
+            router.push({ pathname: "/perfil/userProfile", params: { userId: publisherId } });
+          }
+        }}
+        className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor} flex-row items-center`}
+        activeOpacity={0.8}
+      >
+        <Image
+          source={{
+            uri:
+              service.user?.profilePhoto ||
+              (typeof service.user_id === 'object' && service.user_id.profilePhoto) ||
+              profilePhotoParam ||
+              'https://imgs.search.brave.com/F3S732RuH1idxV7dDfEqAM9vKEJhhxQ-XP8pb4iaOmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzllLzgz/Lzc1LzllODM3NTI4/ZjAxY2YzZjQyMTE5/YzVhZWVlZDFiMzM2/LmpwZw'
+          }}
+          className="w-16 h-16 rounded-full mr-4 border-2 border-blue-400"
+          resizeMode="cover"
+        />
+        <View>
+          <Text className={`text-lg font-semibold ${textColor}`}>
+            {service.user?.name || (typeof service.user_id === 'object' && service.user_id.name) || personNameParam || 'Usuario'}
+          </Text>
+          <Text className={`text-sm ${secondaryTextColor}`}>{publisherId ? 'Ver perfil' : 'Publicador'}</Text>
+        </View>
+      </TouchableOpacity>
 
       {/* Card: Descripción */}
       <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>

@@ -22,6 +22,12 @@ export interface Service {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  // Nuevos campos opcionales provenientes del backend
+  isPromoted?: boolean;
+  promotedUntil?: string | null;
+  promotionPlan?: string | null;
+  favoritesCount?: number;
+  isFavorite?: boolean;
   user?: {
     _id: string;
     name: string;

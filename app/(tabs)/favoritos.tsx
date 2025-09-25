@@ -101,9 +101,15 @@ export default function FavoritesScreen() {
     fetchFavorites(1, searchText);
   };
 
-  const handleServicePress = (serviceId: string) => {
-    console.log("View service details:", serviceId);
-    router.push(`/servicio/${serviceId}/details`);
+  const handleServicePress = (service: FavoriteItem) => {
+    router.push({
+      pathname: "/servicio/[id]/details",
+      params: {
+        id: service.id,
+        personName: service.personName,
+        profilePhoto: service.profilePic,
+      },
+    });
   };
 
   const handleRefresh = async () => {
@@ -167,7 +173,7 @@ export default function FavoritesScreen() {
               profilePic={item.profilePic}
               isFavorite={item.isFavorite}
               onToggleFavorite={handleToggleFavorite}
-              onPress={() => handleServicePress(item.id)}
+              onPress={() => handleServicePress(item)}
             />
           ))}
         </ScrollView>
