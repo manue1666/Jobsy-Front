@@ -110,7 +110,15 @@ export default function MainFeedScreen() {
           loading={loading}
           page={page}
           onToggleFavorite={handleToggleFavorite}
-          onPress={(serviceId) => router.push(`/servicio/${serviceId}/details`)}
+          onPress={(service) =>
+            router.push({
+              pathname: "/servicio/[id]/details",
+              params: {
+                id: service.id,
+                personName: service.personName,
+              },
+            })
+          }
         />
       </ScrollView>
     </ScreenContainer>

@@ -9,7 +9,7 @@ export interface ServiceLocation {
 
 export interface Service {
   _id: string;
-  user_id: string;
+  user_id: string | { _id: string; name: string; profilePhoto?: string };
   service_name: string;
   category: string;
   description: string;
@@ -22,6 +22,11 @@ export interface Service {
   createdAt: string;
   updatedAt: string;
   __v: number;
+  user?: {
+    _id: string;
+    name: string;
+    profilePhoto?: string;
+  };
 }
 
 export interface ApiResponse {

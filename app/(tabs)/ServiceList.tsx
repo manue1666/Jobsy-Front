@@ -8,7 +8,7 @@ interface ServiceListProps {
   loading: boolean;
   page: number;
   onToggleFavorite: (serviceId: string, isCurrentlyFavorite: boolean) => void;
-  onPress: (serviceId: string) => void;
+  onPress: (service: ServicePost) => void; // pasamos el objeto completo para poder enviar fallback de nombre
 }
 
 export const ServiceList: React.FC<ServiceListProps> = ({
@@ -33,7 +33,7 @@ export const ServiceList: React.FC<ServiceListProps> = ({
         favoritesCount={service.favoritesCount}
         isPromoted={service.isPromoted}
         onToggleFavorite={() => onToggleFavorite(service.id, service.isFavorite)}
-        onPress={() => onPress(service.id)}
+        onPress={() => onPress(service)}
       />
     ))}
     {loading && page > 1 && (

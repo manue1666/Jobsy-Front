@@ -25,7 +25,7 @@ import CommentsSection from "./CommentsSection";
 import { useAlert } from "@/components/mainComponents/Alerts";
 
 export default function ServiceDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, personName: personNameParam } = useLocalSearchParams<{ id: string; personName?: string }>();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -143,6 +143,28 @@ export default function ServiceDetailScreen() {
         </View>
       </View>
 
+      {/* Card: Datos del usuario debajo del header */}
+      <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor} flex-row items-center`}>
+        {(() => {
+          const publisherObj = typeof service.user_id === 'object' ? service.user_id : undefined;
+          const photo = service.user?.profilePhoto || publisherObj?.profilePhoto || "https://imgs.search.brave.com/F3S732RuH1idxV7dDfEqAM9vKEJhhxQ-XP8pb4iaOmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzllLzgz/Lzc1LzllODM3NTI4/ZjAxY2YzZjQyMTE5/YzVhZWVlZDFiMzM2/LmpwZw";
+          const name = service.user?.name || publisherObj?.name || personNameParam || 'Usuario';
+          return (
+            <>
+              <Image
+                source={{ uri: photo }}
+                className="w-16 h-16 rounded-full mr-4 border-2 border-blue-400"
+                resizeMode="cover"
+              />
+              <View>
+                <Text className={`text-lg font-semibold ${textColor}`}>{name}</Text>
+                <Text className={`text-sm ${secondaryTextColor}`}>Publicador</Text>
+              </View>
+            </>
+          );
+        })()}
+      </View>
+
       {/* Card: Descripción */}
       <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <Text className={`text-lg font-semibold mb-2 ${textColor}`}>
@@ -214,37 +236,28 @@ export default function ServiceDetailScreen() {
         )}
       </View>
 
-      {/* Card: Detalles adicionales */}
+      {/* Card: Fecha de publicación */}
       <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
-        <Text className={`font-semibold mb-2 ${textColor}`}>
-          Detalles del servicio
-        </Text>
-
-        <View className="space-y-2">
-          <View className="flex-row justify-between">
-            <Text className={secondaryTextColor}>Publicado el:</Text>
-            <Text className={textColor}>
-              {new Date(service.createdAt).toLocaleDateString()}
-            </Text>
-          </View>
-
-          {service.tipo && service.tipo.length > 0 && (
-            <View className="flex-row justify-between">
-              <Text className={secondaryTextColor}>Tipo:</Text>
-              <View className="flex-row flex-wrap justify-end flex-1">
-                {service.tipo.map((tipo, index) => (
-                  <View
-                    key={index}
-                    className={`${tagBgColor} px-2 py-1 rounded-full ml-1 mb-1`}
-                  >
-                    <Text className={`text-xs ${tagTextColor}`}>{tipo}</Text>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-        </View>
+        <Text className={`font-semibold mb-2 ${textColor}`}>Fecha de publicación</Text>
+        <Text className={`text-lg ${secondaryTextColor}`}>{new Date(service.createdAt).toLocaleDateString()}</Text>
       </View>
+
+      {/* Card: Tipos de servicio */}
+      {service.tipo && service.tipo.length > 0 && (
+        <View className={`mx-4 mb-4 p-7 rounded-3xl shadow-lg ${cardBgColor}`}>
+          <Text className={`text-xl font-bold mb-4 ${textColor}`}>Tipos de servicio</Text>
+          <View className="flex-row flex-wrap justify-start">
+            {service.tipo.map((tipo, index) => (
+              <View
+                key={index}
+                className="bg-green-300 px-4 py-2 rounded-full mr-3 mb-3"
+              >
+                <Text className="text-base text-green-900 font-semibold">{tipo}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
 
       {/* Card: Galería de imágenes */}
       {service.photos.length > 1 && (
