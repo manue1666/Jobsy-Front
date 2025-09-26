@@ -116,6 +116,7 @@ export default function MainFeedScreen() {
               params: {
                 id: service.id,
                 personName: service.personName,
+                profilePhoto: service.profilePhoto,
               },
             })
           }

@@ -17,6 +17,7 @@ export interface ServicePost {
   isFavorite: boolean;
   favoritesCount?: number;
   isPromoted?: boolean;
+  profilePhoto?: string; // agregado
   user?: {
     _id: string;
     name: string;
@@ -26,7 +27,6 @@ export interface ServicePost {
 }
 
 export function useServices() {
-  // ...lógica de servicios extraída de index.tsx...
   const [searchText, setSearchText] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [services, setServices] = useState<ServicePost[]>([]);
@@ -39,23 +39,33 @@ export function useServices() {
 
   const transformServiceData = useCallback(
     (apiServices: any[]): ServicePost[] => {
-      return apiServices.map((service) => ({
-        id: service._id,
-        title: service.service_name,
-        address: service.address || "Dirección no disponible",
-        category: service.category,
-        personName: service.user?.name || service.user_id?.name || "Anónimo",
-        serviceImages:
-          service.photos?.length > 0
-            ? service.photos
-            : [
-                "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
-              ],
-        description: service.description,
-        isFavorite: service.isFavorite || false,
-        favoritesCount: service.favoritesCount || 0,
-        isPromoted: service.isPromoted || false,
-      }));
+      return apiServices.map((service) => {
+        const resolvedUser = service.user || service.user_id || {};
+        return {
+          id: service._id,
+          title: service.service_name,
+          address: service.address || "Dirección no disponible",
+            category: service.category,
+          personName: resolvedUser?.name || "Anónimo",
+          serviceImages:
+            service.photos?.length > 0
+              ? service.photos
+              : [
+                  "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
+                ],
+          description: service.description,
+          isFavorite: service.isFavorite || false,
+          favoritesCount: service.favoritesCount || 0,
+          isPromoted: service.isPromoted || false,
+          profilePhoto: resolvedUser?.profilePhoto,
+          user: service.user ? {
+            _id: service.user._id,
+            name: service.user.name,
+            profilePhoto: service.user.profilePhoto,
+          } : undefined,
+          user_id: service.user_id, // conservar para fallback en details
+        };
+      });
     },
     []
   );
@@ -117,7 +127,7 @@ export function useServices() {
       const nearbyServices = await getNearbyServices(coords, searchRange);
       setServices(transformServiceData(nearbyServices));
     } catch (error: any) {
-      errAlert("Error", error.message || "No se pudieron cargar los servicios cercanos");
+      errAlert("Error", error.message || "No se pudieron cargar los servicios cercanos, inténtelo más nuevamente");
       console.error(error);
     } finally {
       setLocationLoading(false);

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -46,6 +46,13 @@ function ConfirmPremiumScreen() {
     | { ok: false; message?: string };
 
   const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const initializePaymentSheet = async (): Promise<InitResult> => {
     try {
@@ -134,61 +141,58 @@ function ConfirmPremiumScreen() {
       }
 
       if (init.mode === "poll") {
-        // Polling del estado premium hasta 20s (aprox 12 intentos cada 1.5s)
-        setInfoMessage("Procesando pago y activación de tu suscripción...");
-        const maxAttempts = 12;
-        let activated = false;
-        for (let i = 0; i < maxAttempts; i++) {
-          await delay(1500);
-          try {
-            const profile = await getUserProfile();
-            if (profile?.isPremium) {
-              activated = true;
-              break;
+        // Eliminado polling: manejo inmediato sin reintentos
+        setPaymentStatus("processing");
+        setInfoMessage(
+          "Estamos activando tu suscripción... Revisa tu perfil en unos segundos."
+        );
+        try {
+          const profile = await getUserProfile();
+          if (profile?.isPremium) {
+            setPaymentStatus("success");
+            setInfoMessage("");
+            Alert.alert(
+              "¡Éxito!",
+              "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
+              [
+                {
+                  text: "Aceptar",
+                  onPress: () => router.replace("/(tabs)/perfil"),
+                },
+              ]
+            );
+            try {
+              await sendEmail();
+              okAlert(
+                "CORREO ENVIADO",
+                "Revisa tu correo para más información sobre tu suscripción Premium"
+              );
+            } catch (e) {
+              console.error("Error al enviar correo (sin polling):", e);
+              errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
             }
-          } catch {
-            // Ignorar errores transitorios de red durante el polling
-          }
-        }
-
-        if (activated) {
-          setPaymentStatus("success");
-          setInfoMessage("");
-          Alert.alert(
-            "¡Éxito!",
-            "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
-            [
-              {
-                text: "Aceptar",
-                onPress: () => router.replace("/(tabs)/perfil"),
-              },
-            ]
-          );
-          try {
-            await sendEmail();
-            okAlert(
-              "CORREO ENVIADO",
-              "Revisa tu correo para más información sobre tu suscripción Premium"
+          } else {
+            setPaymentStatus("idle");
+            errAlert(
+              "Seguimos procesando",
+              "Tu pago está en proceso. Si ya se debitó, actualiza tu perfil en unos segundos. Te enviaremos un correo con el estado."
             );
-          } catch {
-            errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+            try {
+              await sendEmail();
+              okAlert(
+                "CORREO ENVIADO",
+                "Hemos enviado un correo con información del estado de tu pago. Si no se activa en unos minutos, responde al correo o contacta soporte."
+              );
+            } catch (e) {
+              console.error("Error al enviar correo (estado pendiente):", e);
+              errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+            }
           }
-        } else {
+        } catch (e) {
+          console.warn("Error al verificar perfil tras modo poll:", e);
           setPaymentStatus("idle");
-          errAlert(
-            "Seguimos procesando",
-            "Tu pago está en proceso. Si no ves la activación en unos minutos, intenta actualizar tu perfil."
-          );
-          try {
-            await sendEmail();
-            okAlert(
-              "CORREO ENVIADO",
-              "Revisa tu correo para más información sobre tu suscripción Premium"
-            );
-          } catch {
-            errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
-          }
         }
+        setIsLoading(false);
         return;
       }
 
