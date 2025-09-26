@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { initPaymentSheet as stripeInitPaymentSheet, presentPaymentSheet as stripePresentPaymentSheet } from '@stripe/stripe-react-native';
 
 export interface SafeStripe {
   initPaymentSheet: (options: any) => Promise<any>;
@@ -8,41 +9,27 @@ export interface SafeStripe {
 }
 
 export function useSafeStripe(): SafeStripe {
-  const [stripe, setStripe] = useState<any>(null);
   const [isAvailable, setIsAvailable] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initializeStripe = async () => {
-      try {
-        // ✅ Importación dinámica - solo se carga si se usa
-        const stripeModule = await import('@stripe/stripe-react-native');
-        setStripe(stripeModule);
-        setIsAvailable(true);
-      } catch (error) {
-        console.warn('Stripe native module not available:', error);
-        setIsAvailable(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeStripe();
+    setIsAvailable(true);
+    setIsLoading(false);
   }, []);
 
   // ✅ Funciones seguras con fallbacks
   const initPaymentSheet = async (options: any) => {
-    if (!stripe) {
+    if (!isAvailable) {
       throw new Error('Stripe not available');
     }
-    return stripe.initPaymentSheet(options);
+    return stripeInitPaymentSheet(options);
   };
 
   const presentPaymentSheet = async () => {
-    if (!stripe) {
+    if (!isAvailable) {
       throw new Error('Stripe not available');
     }
-    return stripe.presentPaymentSheet();
+    return stripePresentPaymentSheet();
   };
 
   return {
