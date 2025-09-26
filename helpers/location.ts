@@ -30,7 +30,7 @@ export const getUserLocation = async () => {
     };
   } catch (error) {
     console.error('Error al obtener ubicación:', error);
-    Alert.alert('Error','No se pudo obtener tu ubicación',[
+    Alert.alert('Error','No se pudo obtener tu ubicación intenta nuevamente',[
       {
         text : 'OK'
       }
