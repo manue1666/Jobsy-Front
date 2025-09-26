@@ -10,10 +10,10 @@ import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FeedHeader } from '@/components/mainComponents/principal/header';
 import { useRouter } from 'expo-router';
 import { BannerBoost } from "@/components/mainComponents/principal/bannerBoost";
-import { useServices } from "./useServices"; // Lógica de servicios extraída
-import { useUserProfile } from "./useUserProfile"; // Lógica de perfil extraída
-import { ServiceList } from "./ServiceList"; // Componente de lista de servicios
-import { isCloseToBottom } from "./scrollUtils"; // Utilidad extraída
+import { useServices } from "./_useServices"; // Lógica de servicios extraída
+import { useUserProfile } from "./_useUserProfile"; // Lógica de perfil extraída
+import { ServiceList } from "./_ServiceList"; // Componente de lista de servicios
+import { isCloseToBottom } from "./_scrollUtils"; // Utilidad extraída
 
 export const BOOST_PLANS = {
   "24h": { amount: 150, durationMs: 24 * 60 * 60 * 1000 },

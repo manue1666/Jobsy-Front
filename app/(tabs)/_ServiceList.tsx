@@ -1,7 +1,7 @@
 import React from "react";
 import { View, ActivityIndicator } from "react-native";
 import { ServiceFeedCard } from '@/components/mainComponents/principal/ServiceFeedCard';
-import { ServicePost } from "./useServices";
+import { ServicePost } from "./_useServices";
 
 interface ServiceListProps {
   services: ServicePost[];
