@@ -66,8 +66,12 @@ export default function PublicarScreen() {
 
     if (!serviceData.phone.trim()) {
       newErrors.phone = "El teléfono es requerido";
-    } else if (!/^\d{15}$/.test(serviceData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Ingresa un teléfono válido";
+    } else {
+      // Solo números, entre 10 y 15 dígitos
+      const digits = serviceData.phone.replace(/\D/g, "");
+      if (digits.length < 10 || digits.length > 15) {
+        newErrors.phone = "Ingresa un teléfono válido";
+      }
     }
 
     if (!serviceData.email.trim()) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useColorScheme } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
@@ -16,6 +17,7 @@ import { FormInput } from "@/components/authComponents/FormInput";
 import { PrimaryButton } from "@/components/authComponents/PrimaryButton";
 import { loginUser } from "../../helpers/auth"; // Importa la función de login
 import { useAlert } from "@/components/mainComponents/Alerts";
+import { getUserProfile } from "@/helpers/profile";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -26,6 +28,21 @@ export default function LoginScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
+  useEffect(() => {
+    const checkSession = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (token) {
+        try {
+          await getUserProfile();
+          router.replace("/(tabs)");
+        } catch (error: any) {
+          await AsyncStorage.removeItem("token");
+        }
+      }
+    };
+    checkSession();
+  }, []);
+
   const handleLogin = async () => {
     setLoading(true);
     try {
@@ -35,7 +52,7 @@ export default function LoginScreen() {
       if (err?.status === 404 || err?.message?.includes("404")) {
         errAlert("Error", "Credenciales incorrectas");
       } else {
-        errAlert("Error", err.message || "Error al iniciar sesión");
+        errAlert("Error", "Error al iniciar sesión compruebe sus credenciales");
       }
       console.log(err);
     } finally {

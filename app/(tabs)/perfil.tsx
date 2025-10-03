@@ -218,7 +218,10 @@ export default function ProfileScreen() {
 
               {/* Cerrar sesión */}
               <TouchableOpacity
-                onPress={() => router.replace("/(auth)")}
+                onPress={async () => {
+                  await AsyncStorage.removeItem("token");
+                  router.replace("/(auth)");
+                }}
                 className={`flex-row items-center justify-center p-4 mt-6 rounded-3xl w-full ${logoutBg}`}
               >
                 <Entypo

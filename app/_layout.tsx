@@ -11,6 +11,8 @@ import "@/global.css"
 import { SearchRangeProvider } from '@/context/searchRangeContext';
 import ThemeProvider from '@/context/themeContext';
 import { StripeInitializer } from '@/components/StripeInitializer';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 
 
 export {
