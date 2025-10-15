@@ -87,6 +87,11 @@ export function useServices() {
         );
         setTotalPages(result.pages);
         setPage(pageNum);
+
+        if(!result.services || result.services.length===0){
+          errAlert("Error","No se encontraron servicios.");
+        }
+
       } catch (error: any) {
         errAlert("Error", error.message || "No se pudieron cargar los servicios");
       } finally {

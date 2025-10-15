@@ -71,6 +71,10 @@ export default function FavoritesScreen() {
           ? transformServiceData(result.services)
           : [...prev, ...transformServiceData(result.services)]
       );
+
+      if (!result.services || result.services.length === 0) {
+        errAlert("Error", "No se encontraron servicios.");
+      }
       setTotalPages(result.pages);
       setPage(pageNum);
     } catch (error: any) {
