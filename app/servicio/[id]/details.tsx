@@ -25,7 +25,15 @@ import CommentsSection from "./CommentsSection";
 import { useAlert } from "@/components/mainComponents/Alerts";
 
 export default function ServiceDetailScreen() {
-  const { id, personName: personNameParam, profilePhoto: profilePhotoParam } = useLocalSearchParams<{ id: string; personName?: string; profilePhoto?: string }>();
+  const {
+    id,
+    personName: personNameParam,
+    profilePhoto: profilePhotoParam,
+  } = useLocalSearchParams<{
+    id: string;
+    personName?: string;
+    profilePhoto?: string;
+  }>();
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -114,9 +122,10 @@ export default function ServiceDetailScreen() {
   }
 
   // Helper para obtener el id del publicador
-  const publisherId = (service?.user && (service.user as any)._id) ||
-    (typeof service?.user_id === 'object' && (service.user_id as any)._id) ||
-    (typeof service?.user_id === 'string' ? service.user_id : undefined);
+  const publisherId =
+    (service?.user && (service.user as any)._id) ||
+    (typeof service?.user_id === "object" && (service.user_id as any)._id) ||
+    (typeof service?.user_id === "string" ? service.user_id : undefined);
 
   return (
     <ScrollView className={bgColor}>
@@ -154,7 +163,10 @@ export default function ServiceDetailScreen() {
         disabled={!publisherId}
         onPress={() => {
           if (publisherId) {
-            router.push({ pathname: "/perfil/userProfile", params: { userId: publisherId } });
+            router.push({
+              pathname: "/perfil/userProfile",
+              params: { userId: publisherId },
+            });
           }
         }}
         className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor} flex-row items-center`}
@@ -164,18 +176,24 @@ export default function ServiceDetailScreen() {
           source={{
             uri:
               service.user?.profilePhoto ||
-              (typeof service.user_id === 'object' && service.user_id.profilePhoto) ||
+              (typeof service.user_id === "object" &&
+                service.user_id.profilePhoto) ||
               profilePhotoParam ||
-              'https://imgs.search.brave.com/F3S732RuH1idxV7dDfEqAM9vKEJhhxQ-XP8pb4iaOmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzllLzgz/Lzc1LzllODM3NTI4/ZjAxY2YzZjQyMTE5/YzVhZWVlZDFiMzM2/LmpwZw'
+              "https://imgs.search.brave.com/F3S732RuH1idxV7dDfEqAM9vKEJhhxQ-XP8pb4iaOmM/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzLzllLzgz/Lzc1LzllODM3NTI4/ZjAxY2YzZjQyMTE5/YzVhZWVlZDFiMzM2/LmpwZw",
           }}
           className="w-16 h-16 rounded-full mr-4 border-2 border-blue-400"
           resizeMode="cover"
         />
         <View>
           <Text className={`text-lg font-semibold ${textColor}`}>
-            {service.user?.name || (typeof service.user_id === 'object' && service.user_id.name) || personNameParam || 'Usuario'}
+            {service.user?.name ||
+              (typeof service.user_id === "object" && service.user_id.name) ||
+              personNameParam ||
+              "Usuario"}
           </Text>
-          <Text className={`text-sm ${secondaryTextColor}`}>{publisherId ? 'Ver perfil' : 'Publicador'}</Text>
+          <Text className={`text-sm ${secondaryTextColor}`}>
+            {publisherId ? "Ver perfil" : "Publicador"}
+          </Text>
         </View>
       </TouchableOpacity>
 
@@ -252,21 +270,29 @@ export default function ServiceDetailScreen() {
 
       {/* Card: Fecha de publicación */}
       <View className={`mx-4 mb-4 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
-        <Text className={`font-semibold mb-2 ${textColor}`}>Fecha de publicación</Text>
-        <Text className={`text-lg ${secondaryTextColor}`}>{new Date(service.createdAt).toLocaleDateString()}</Text>
+        <Text className={`font-semibold mb-2 ${textColor}`}>
+          Fecha de publicación
+        </Text>
+        <Text className={`text-lg ${secondaryTextColor}`}>
+          {new Date(service.createdAt).toLocaleDateString()}
+        </Text>
       </View>
 
       {/* Card: Tipos de servicio */}
       {service.tipo && service.tipo.length > 0 && (
         <View className={`mx-4 mb-4 p-7 rounded-3xl shadow-lg ${cardBgColor}`}>
-          <Text className={`text-xl font-bold mb-4 ${textColor}`}>Tipos de servicio</Text>
+          <Text className={`text-xl font-bold mb-4 ${textColor}`}>
+            Tipos de servicio
+          </Text>
           <View className="flex-row flex-wrap justify-start">
             {service.tipo.map((tipo, index) => (
               <View
                 key={index}
                 className="bg-green-300 px-4 py-2 rounded-full mr-3 mb-3"
               >
-                <Text className="text-base text-green-900 font-semibold">{tipo}</Text>
+                <Text className="text-base text-green-900 font-semibold">
+                  {tipo}
+                </Text>
               </View>
             ))}
           </View>
@@ -327,6 +353,29 @@ export default function ServiceDetailScreen() {
       {/* Card: Sección de comentarios */}
       <View className={`mx-4 mb-8 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
         <CommentsSection serviceId={id as string} />
+      </View>
+      {/* Botón Reportar publicación */}
+      <View className={`mx-4 mb-8 p-5 rounded-2xl shadow-lg ${cardBgColor}`}>
+        <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: "/servicio/[id]/report",
+              params: {
+                id: service._id,
+                serviceId: service._id,
+                userId: publisherId,
+                serviceName: service.service_name
+              },
+            });
+          }}
+          className="bg-yellow-400 py-3 px-6 rounded-full flex-row items-center justify-center mt-4 shadow"
+          activeOpacity={0.85}
+        >
+          <MaterialIcons name="report" size={20} color="#B45309" />
+          <Text className="ml-2 text-base font-semibold text-yellow-900">
+            Reportar publicación
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
