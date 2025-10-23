@@ -6,22 +6,31 @@ export function StripeInitializer() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-      if (!publishableKey) {
-        console.error('Stripe publishable key is missing');
-        return;
-      }
-      initStripe({
-        publishableKey,
-        merchantIdentifier: 'merchant.com.marudehabanero.Jobsy',
-      });
-      setIsInitialized(true);
-      console.log('Stripe initialized successfully for Android');
-    } else {
-      setIsInitialized(true);
+    const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    
+    if (!publishableKey) {
+      console.error('❌ Stripe publishable key is missing');
+      return;
     }
+
+    const initializeStripe = async () => {
+      try {
+        await initStripe({
+          publishableKey,
+          merchantIdentifier: 'merchant.com.marudehabanero.Jobsy',
+          threeDSecureParams: {
+            timeout: 5,
+          },
+        });
+        setIsInitialized(true);
+        console.log(`✅ Stripe initialized successfully for ${Platform.OS}`);
+      } catch (error) {
+        console.error('❌ Stripe initialization failed:', error);
+      }
+    };
+
+    initializeStripe();
   }, []);
 
-  return null; // Este componente no renderiza nada visualmente
+  return null;
 }

@@ -16,7 +16,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.marudehabanero.Jobsy",
-      "buildNumber": "2"
+      "buildNumber": "3",
+      "usesNonExemptEncryption": false,
+      "deploymentTarget": "15.1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -25,7 +30,7 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.marudehabanero.Jobsy",
-      "versionCode": 2
+      "versionCode": 3
     },
     "web": {
       "bundler": "metro",
@@ -41,13 +46,16 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0"
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
           }
         }
       ],
       [
         "@stripe/stripe-react-native",
         {
-          "merchantIdentifier": "",
+          "merchantIdentifier": "merchant.com.marudehabanero.Jobsy",
           "enableGooglePay": false,
           "enableNetworking": true
         }
