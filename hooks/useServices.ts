@@ -5,6 +5,8 @@ import { getUserLocation } from '@/helpers/location';
 import { useSearchRange } from "@/context/searchRangeContext";
 import { useAlert } from "@/components/mainComponents/Alerts";
 
+const defaultServiceImage = "@/assets/images/service_default_image.png";
+
 export interface ServicePost {
   id: string;
   title: string;
@@ -26,6 +28,7 @@ export interface ServicePost {
 }
 
 export function useServices() {
+  
   const [searchText, setSearchText] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [services, setServices] = useState<ServicePost[]>([]);
@@ -49,9 +52,7 @@ export function useServices() {
           serviceImages:
             service.photos?.length > 0
               ? service.photos
-              : [
-                  "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400&h=300&fit=crop",
-                ],
+              : [defaultServiceImage],
           description: service.description,
           isFavorite: service.isFavorite || false,
           favoritesCount: service.favoritesCount || 0,

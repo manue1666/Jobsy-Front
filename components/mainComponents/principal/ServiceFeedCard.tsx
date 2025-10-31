@@ -2,6 +2,7 @@ import React, { useContext, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ThemeContext } from "@/context/themeContext";
+import { getImageSource } from "@/helpers/imageUtils";
 
 interface ServiceFeedCardProps {
   id: string;
@@ -28,7 +29,7 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   serviceImages = [],
   description,
   isFavorite = false,
-  favoritesCount = 0, // Nuevo: valor por defecto 0
+  favoritesCount = 0,
   isPromoted = false,
   onToggleFavorite,
   onPress,
@@ -36,6 +37,14 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
   const [favorite, setFavorite] = useState(isFavorite);
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === "dark";
+
+  // Truncar descripción a 100 caracteres
+  const truncateDescription = (text: string, maxLength: number = 100) => {
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength) + "...";
+    }
+    return text;
+  };
 
   const handleToggleFavorite = () => {
     const newFavoriteState = !favorite;
@@ -67,7 +76,7 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
             {serviceImages.map((imageUri, index) => (
               <Image
                 key={index}
-                source={{ uri: imageUri }}
+                source={getImageSource(imageUri)}
                 className="w-full h-48"
                 style={{ width: 350 }}
                 resizeMode="cover"
@@ -180,8 +189,9 @@ export const ServiceFeedCard: React.FC<ServiceFeedCardProps> = ({
             className={`text-sm mb-3 leading-5 ${
               isDark ? "text-gray-300" : "text-gray-600"
             }`}
+            numberOfLines={2}
           >
-            {description}
+            {truncateDescription(description, 100)}
           </Text>
         )}
 

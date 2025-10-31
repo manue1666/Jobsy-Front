@@ -69,6 +69,20 @@ export default function MainFeedScreen() {
 
   return (
     <ScreenContainer>
+      {/* Header con la estructura correcta */}
+      <FeedHeader
+        userData={getSafeUserData()}
+        onProfilePress={() => router.push("/perfil")}
+        onNearbyPress={handleNearbyPress}
+        loading={locationLoading}
+      />
+
+      <SearchBar
+        placeholder="Buscar servicios..."
+        value={searchText}
+        onChangeText={setSearchText}
+        onSearchPress={() => fetchServices(1, searchText)}
+      />
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -88,20 +102,8 @@ export default function MainFeedScreen() {
         }}
         scrollEventThrottle={400}
       >
-        {/* Header con la estructura correcta */}
-        <FeedHeader
-          userData={getSafeUserData()}
-          onProfilePress={() => router.push("/perfil")}
-          onNearbyPress={handleNearbyPress}
-          loading={locationLoading}
-        />
 
-        <SearchBar
-          placeholder="Buscar servicios..."
-          value={searchText}
-          onChangeText={setSearchText}
-          onSearchPress={() => fetchServices(1, searchText)}
-        />
+        {/* banner boost */}
         <BannerBoost/>
 
         {/* Lista de servicios modularizada */}

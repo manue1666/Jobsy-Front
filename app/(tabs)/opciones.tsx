@@ -65,6 +65,12 @@ export default function ProfileScreen() {
       onPress: () => router.push("/opciones/info"),
     },
     {
+      icon: (color: string) => <Feather name="alert-circle" size={24} color={color} />,
+      title: "Reportar problema",
+      subtitle: "Informa cualquier problema de la app",
+      onPress: () => router.push("/opciones/reportJobsy"),
+    },
+    {
       icon: (color: string) => (
         <Feather name="map-pin" size={24} color={color} />
       ),
@@ -90,6 +96,7 @@ export default function ProfileScreen() {
       subtitle: "Explora las oportunidades Teteocan que te brindaron esta app",
       onPress: () => Linking.openURL("https://teteocan.com/servicios/"),
     },
+    
   ];
 
   return (
