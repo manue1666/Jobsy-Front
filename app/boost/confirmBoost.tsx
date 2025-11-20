@@ -1,14 +1,20 @@
-import React, { useContext, useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Linking } from "react-native";
+import React, { useContext, useState, useEffect, useRef } from "react";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { ThemeContext } from "@/context/themeContext";
-import { boostService } from "@/helpers/boost_service";
+import { boostService, getBoostStatus } from "@/helpers/boost_service";
 import { useSafeStripe } from '@/hooks/useSafeStripe';
 import { useAlert } from "@/components/mainComponents/Alerts";
+import { getUserProfile } from "@/helpers/profile";
 
 function ConfirmBoostScreen() {
-  const params = useLocalSearchParams<{ serviceId?: string; planId?: string; serviceName?: string }>();
+  const params = useLocalSearchParams<{ 
+    serviceId?: string; 
+    planId?: string; 
+    serviceName?: string;
+  }>();
+  
   const { currentTheme } = useContext(ThemeContext);
   const { initPaymentSheet, presentPaymentSheet, isAvailable, isLoading: stripeLoading } = useSafeStripe();
   const isDark = currentTheme === "dark";
@@ -16,6 +22,7 @@ function ConfirmBoostScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [infoMessage, setInfoMessage] = useState<string>("");
   const { okAlert, errAlert } = useAlert();
 
   const planPrices = { '24h': 30, '72h': 70, '1week': 120 };
@@ -23,31 +30,72 @@ function ConfirmBoostScreen() {
   const currentPrice = planPrices[params.planId as keyof typeof planPrices] || 0;
   const durationText = planDurations[params.planId as keyof typeof planDurations] || '';
 
-  // Configurar el deep linking para el retorno de Stripe
+  const mountedRef = useRef(true);
+  
   useEffect(() => {
-    const handleDeepLink = async (event: { url: string }) => {
-      if (event.url.includes('stripe-redirect')) {
-        // Verificar el estado del pago después de regresar de Stripe
-        checkPaymentStatus();
-      }
-    };
-
-    const subscription = Linking.addEventListener('url', handleDeepLink);
-    
     return () => {
-      subscription.remove();
+      mountedRef.current = false;
     };
   }, []);
 
-  const initializePaymentSheet = async () => {
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+  type InitResult =
+    | { ok: true }
+    | { ok: false; message?: string };
+
+  const initializePaymentSheet = async (): Promise<InitResult>=> {
     if (!params.serviceId || !params.planId) {
       errAlert("Error", "ID de servicio o plan no proporcionado");
-      return false;
+      return { ok: false, message: "Datos incompletos" };
     }
 
     try {
-      const response = await boostService(params.serviceId, params.planId);
-      setClientSecret(response.clientSecret);
+      console.log('[ConfirmBoost] Iniciando proceso de boost');
+      
+      let response: any;
+
+      try {
+        response = await boostService(params.serviceId, params.planId);
+        
+        if (response.clientSecret) {
+          setClientSecret(response.clientSecret);
+          console.log('[ConfirmBoost] ClientSecret obtenido');
+        }
+        
+      } catch (error: any) {
+        // Manejar error 409 - Ya está promocionado
+        if (error?.status === 409) {
+          console.log('[ConfirmBoost] Servicio ya está promocionado');
+          
+          const hoursText = error.remainingHours === 1 ? 'hora' : 'horas';
+          const minutesText = error.remainingMinutes === 1 ? 'minuto' : 'minutos';
+          
+          okAlert(
+            "Ya está en Promoción",
+            `Este servicio ya está siendo promocionado con el plan ${error.currentPlan || 'desconocido'}.\n\n` +
+            `Tiempo restante: ${error.remainingHours || 0} ${hoursText} y ${error.remainingMinutes || 0} ${minutesText}.\n\n` +
+            `Espera a que termine la promoción actual para activar una nueva.`
+          );
+          
+          setTimeout(() => {
+            if (mountedRef.current) {
+              router.back();
+            }
+          }, 2000);
+          
+          return { ok: false, message: "Ya promocionado" };
+        }
+        
+        // Otros errores
+        console.error('[ConfirmBoost] Error en boostService:', error);
+        throw error;
+      }
+
+      // Inicializar PaymentSheet con el clientSecret
+      if (!response.clientSecret) {
+        throw new Error('No se recibió clientSecret del servidor');
+      }
 
       const { error } = await initPaymentSheet({
         paymentIntentClientSecret: response.clientSecret,
@@ -61,37 +109,59 @@ function ConfirmBoostScreen() {
       });
 
       if (error) {
-        console.error('Error initializing payment sheet:', error);
+        console.error('[ConfirmBoost] Error initializing payment sheet:', error);
         throw new Error(`Error al configurar pago: ${error.message}`);
       }
 
-      return true;
+      console.log('[ConfirmBoost] ✅ PaymentSheet inicializado correctamente');
+      return { ok: true };
+
     } catch (error: any) {
-      console.error('Error in payment initialization:', error);
-      errAlert("Error", error.message || "No se pudo iniciar el proceso de pago");
-      return false;
+      setInfoMessage("");
+      console.error('[ConfirmBoost] Error en initializePaymentSheet:', error);
+      errAlert(
+        "Error",
+        error.message || "No se pudo iniciar el proceso de pago"
+      );
+      return { ok: false, message: error.message };
     }
   };
 
-  const checkPaymentStatus = async () => {
-    if (!clientSecret) return;
-    
+  const verifyBoostActivation = async (): Promise<boolean> => {
     try {
-      // Aquí podrías implementar una verificación con tu backend
-      // para confirmar que el pago fue procesado correctamente
-      // y el servicio fue boosteado
+      console.log('[ConfirmBoost] Verificando activación del boost...');
       
-      // Por ahora, asumimos éxito si llegamos aquí
-      setPaymentStatus('success');
-      Alert.alert(
-        "¡Éxito!", 
-        `Tu servicio ha sido boosteado con el plan ${params.planId} (${durationText})`,
-        [{ text: "Aceptar", onPress: () => router.back() }]
-      );
+      // Esperar a que el webhook procese (3 segundos)
+      await delay(3000);
+      
+      if (!mountedRef.current) return false;
+
+      // Obtener estado actualizado del servicio
+      const status = await getBoostStatus(params.serviceId!);
+      
+      console.log('[ConfirmBoost] Estado del boost:', {
+        isPromoted: status.isPromoted,
+        remainingHours: status.remainingTime?.hours,
+      });
+
+      if (status.isPromoted) {
+        console.log('[ConfirmBoost] ✅ Boost activado correctamente');
+        return true;
+      } else {
+        console.log('[ConfirmBoost] ⚠️ Boost aún no activado, esperando más...');
+        
+        // Reintentar una vez más después de 2 segundos
+        await delay(2000);
+        
+        if (!mountedRef.current) return false;
+        
+        const retryStatus = await getBoostStatus(params.serviceId!);
+        return retryStatus.isPromoted;
+      }
+      
     } catch (error) {
-      console.error('Error verifying payment:', error);
-      setPaymentStatus('error');
-      errAlert("Error", "No se pudo verificar el estado del pago. Por favor contacta soporte.");
+      console.error('[ConfirmBoost] Error verificando boost:', error);
+      return false;
     }
   };
 
@@ -101,45 +171,103 @@ function ConfirmBoostScreen() {
       return;
     }
 
+    if (!mountedRef.current) return;
+
     setIsLoading(true);
     setPaymentStatus('processing');
 
     try {
-      // Inicializar la hoja de pago
-      const initialized = await initializePaymentSheet();
-      if (!initialized) {
+      console.log('[ConfirmBoost] Iniciando proceso de pago');
+      
+      // Inicializar PaymentSheet
+      const init = await initializePaymentSheet();
+      
+      if (!init.ok) {
         setIsLoading(false);
+        setPaymentStatus('idle');
         return;
       }
 
-      // Presentar la hoja de pago
+      if (!mountedRef.current) return;
+
+      console.log('[ConfirmBoost] Presentando PaymentSheet');
+      setInfoMessage("Completa el pago para activar el boost...");
+
+      // Presentar PaymentSheet
       const { error } = await presentPaymentSheet();
       
+      if (!mountedRef.current) return;
+
       if (error) {
-        console.error('Payment sheet error:', error);
+        console.error('[ConfirmBoost] Payment sheet error:', error);
         
-        // No es un error si el usuario simplemente cancela el pago
-        if (error.code !== 'Canceled') {
-          throw new Error(error.message || "Ocurrió un error al procesar el pago");
-        } else {
+        // No es un error si el usuario cancela
+        if (error.code === 'Canceled') {
           setPaymentStatus('idle');
-          Alert.alert("Pago cancelado", "El proceso de pago fue cancelado.");
+          setInfoMessage("");
+          okAlert("Pago cancelado", "El proceso de pago fue cancelado.");
+        } else {
+          throw new Error(error.message || "Ocurrió un error al procesar el pago");
         }
       } else {
-        // Éxito - el pago se completó
-        setPaymentStatus('success');
-        Alert.alert(
-          "¡Éxito!", 
-          `Tu servicio ha sido boosteado con el plan ${params.planId} (${durationText})`,
-          [{ text: "Aceptar", onPress: () => router.back() }]
-        );
+        // Pago completado en el cliente
+        console.log('[ConfirmBoost] ✅ Pago completado en cliente');
+        setInfoMessage("Verificando activación del boost...");
+        
+        // Verificar que el boost se activó correctamente
+        const isActivated = await verifyBoostActivation();
+        
+        if (!mountedRef.current) return;
+        
+        if (isActivated) {
+          setPaymentStatus('success');
+          setInfoMessage("");
+          okAlert(
+            "¡Boost Activado!", 
+            `Tu servicio está siendo promocionado con el plan ${params.planId} durante ${durationText}. ` +
+            `Ahora aparecerá destacado en los resultados de búsqueda.`,
+            [{ 
+              text: "Aceptar", 
+              onPress: () => {
+                if (mountedRef.current) {
+                  router.back();
+                }
+              }
+            }]
+          );
+        } else {
+          // Pago exitoso pero boost no activado aún
+          setPaymentStatus('success');
+          setInfoMessage("");
+          okAlert(
+            "Pago Procesado",
+            "Tu pago fue procesado correctamente. El boost se activará en los próximos minutos.",
+            [{ 
+              text: "Aceptar", 
+              onPress: () => {
+                if (mountedRef.current) {
+                  router.back();
+                }
+              }
+            }]
+          );
+        }
       }
     } catch (error: any) {
-      console.error('Payment error:', error);
+      if (!mountedRef.current) return;
+
       setPaymentStatus('error');
-      errAlert("Error", error.message || "Ocurrió un error al procesar el pago");
+      setInfoMessage("");
+      
+      console.error('[ConfirmBoost] Error en handlePayment:', error);
+      errAlert(
+        "Error en el Proceso",
+        error.message || "Ocurrió un error al procesar el boost. Por favor intenta de nuevo."
+      );
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -164,8 +292,7 @@ function ConfirmBoostScreen() {
             ⚠️ Sistema de pagos temporalmente no disponible
           </Text>
           <Text className={`text-center ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Estamos teniendo problemas técnicos con nuestro procesador de pagos.
-            Por favor intenta más tarde.
+            Estamos teniendo problemas técnicos. Por favor intenta más tarde.
           </Text>
           
           <TouchableOpacity
@@ -219,18 +346,29 @@ function ConfirmBoostScreen() {
           </Text>
         </View>
 
+        {/* Mensaje informativo */}
+        {infoMessage && (
+          <View className={`p-3 rounded-lg mb-4 ${isDark ? "bg-blue-800" : "bg-blue-100"}`}>
+            <Text className={`text-center ${isDark ? "text-blue-200" : "text-blue-800"}`}>
+              {infoMessage}
+            </Text>
+          </View>
+        )}
+
         {/* Botón de pago */}
         <TouchableOpacity
           onPress={handlePayment}
-          disabled={isLoading}
+          disabled={isLoading || paymentStatus === 'processing'}
           className={`py-4 px-6 rounded-lg mb-4 ${
-            isLoading ? "bg-gray-400" : "bg-blue-600"
+            isLoading || paymentStatus === 'processing' ? "bg-gray-400" : "bg-blue-600"
           }`}
         >
-          {isLoading ? (
+          {isLoading || paymentStatus === 'processing' ? (
             <View className="flex-row justify-center items-center">
               <ActivityIndicator color="#ffffff" />
-              <Text className="text-white ml-2 font-bold text-lg">Procesando...</Text>
+              <Text className="text-white ml-2 font-bold text-lg">
+                {paymentStatus === 'processing' ? 'Procesando pago...' : 'Cargando...'}
+              </Text>
             </View>
           ) : (
             <Text className="text-white text-center font-bold text-lg">
@@ -240,10 +378,10 @@ function ConfirmBoostScreen() {
         </TouchableOpacity>
 
         {/* Estado del pago */}
-        {paymentStatus === 'success' && (
+        {paymentStatus === 'success' && !infoMessage && (
           <View className="bg-green-100 p-3 rounded-lg mb-4">
             <Text className="text-green-800 text-center">
-              ✅ Pago completado exitosamente. Tu servicio está siendo boosteado.
+              ✅ Pago completado. Tu servicio está siendo boosteado.
             </Text>
           </View>
         )}
@@ -259,14 +397,14 @@ function ConfirmBoostScreen() {
         {/* Información de seguridad */}
         <View className={`p-3 rounded-lg mt-4 ${isDark ? "bg-gray-800" : "bg-gray-100"}`}>
           <Text className={`text-xs text-center ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            🔒 Pagos seguros procesados por Stripe. Tus datos de pago están protegidos y nunca se almacenan en nuestros servidores.
+            🔒 Pagos seguros procesados por Stripe. Tus datos están protegidos.
           </Text>
         </View>
 
         {/* Botón de cancelar */}
         <TouchableOpacity
           onPress={() => router.back()}
-          disabled={isLoading}
+          disabled={isLoading || paymentStatus === 'processing'}
           className="mt-4 py-3 px-6 border border-gray-300 rounded-lg"
         >
           <Text className={`text-center ${isDark ? "text-gray-300" : "text-gray-600"}`}>

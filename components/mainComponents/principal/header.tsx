@@ -15,7 +15,7 @@ interface FeedHeaderProps {
   onNearbyPress?: () => void;
   loading?: boolean;
 }
-
+ 
 export const FeedHeader: React.FC<FeedHeaderProps> = ({
   userData,
   onProfilePress = () => {},

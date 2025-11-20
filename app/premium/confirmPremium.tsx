@@ -53,50 +53,120 @@ function ConfirmPremiumScreen() {
       mountedRef.current = false;
     };
   }, []);
-
+ 
   const initializePaymentSheet = async (): Promise<InitResult> => {
     try {
-      let response = await premiumUserService();
-      if (response.requiresPaymentMethod) {
-        setInfoMessage(
-          "Necesitas asociar una tarjeta antes de suscribirte. Se abrirá el formulario de Stripe para agregar tu método de pago."
-        );
-        // Solicitar SetupIntent para asociar tarjeta
-        const setupIntentRes = await createPremiumSetupIntentService();
-        const { error: setupError } = await initPaymentSheet({
-          setupIntentClientSecret: setupIntentRes.setupIntentClientSecret,
-          merchantDisplayName: "Jobsy Marketplace",
-          returnURL: "jobsy://stripe-redirect",
-          style: isDark ? "alwaysDark" : "alwaysLight",
-          defaultBillingDetails: {
-            name: "Cliente Jobsy",
-          },
-        });
-        if (setupError) throw new Error(setupError.message);
-        const setupResult = await presentPaymentSheet();
-        if (setupResult.error) throw new Error(setupResult.error.message);
-        setInfoMessage("");
-        // Volver a llamar a /user/premium para crear la suscripción y obtener el clientSecret del PaymentIntent
+      let response: any;
+
+      try {
         response = await premiumUserService();
+        
+        if (response.alreadyPremium) {
+          console.log("Usuario ya tiene suscripción premium activa");
+          okAlert(
+            "Ya eres Premium",
+            `Ya cuentas con una suscripción premium activa${
+              response.currentPeriodEnd 
+                ? ` hasta ${new Date(response.currentPeriodEnd).toLocaleDateString()}`
+                : ""
+            }. No necesitas pagar de nuevo.`
+          );
+          
+          // Redirigir después de mostrar el mensaje
+          setTimeout(() => {
+            router.back();
+          }, 2000);
+          
+          return { ok: false, message: "Ya premium" };
+        }
+        
+      } catch (error: any) {
+        // Manejo especial para error 402 - Requiere método de pago
+        if (error?.status === 402 || error?.requiresPaymentMethod) {
+          console.log("Se requiere agregar método de pago primero");
+          setInfoMessage(
+            "Necesitas asociar una tarjeta antes de suscribirte. Se abrirá el formulario de Stripe para agregar tu método de pago."
+          );
+
+          try {
+            const setupIntentRes = await createPremiumSetupIntentService();
+            const { error: setupError } = await initPaymentSheet({
+              setupIntentClientSecret: setupIntentRes.setupIntentClientSecret,
+              merchantDisplayName: "Jobsy Marketplace",
+              returnURL: "jobsy://stripe-redirect",
+              style: isDark ? "alwaysDark" : "alwaysLight",
+              defaultBillingDetails: {
+                name: "Cliente Jobsy",
+              },
+            });
+
+            if (setupError) {
+              throw new Error(`Error al inicializar SetupIntent: ${setupError.message}`);
+            }
+
+            const setupResult = await presentPaymentSheet();
+            if (setupResult.error) {
+              if (setupResult.error.code === "Canceled") {
+                throw new Error("Cancelaste el proceso de agregar método de pago");
+              }
+              throw new Error(`Error al agregar método de pago: ${setupResult.error.message}`);
+            }
+
+            setInfoMessage("");
+            console.log("Método de pago agregado exitosamente. Esperando confirmación de webhooks...");
+            
+            // Esperar más tiempo para que los webhooks de Stripe procesen:
+            // - setup_intent.succeeded
+            // - payment_method.attached
+            // - customer.updated (asignación de default payment method)
+            // Típicamente toma 2-3 segundos, pero esperamos más para estar seguros
+            await delay(3000);
+
+            console.log("Reintentando crear suscripción premium...");
+
+            // Volver a llamar a /user/premium para crear la suscripción
+            try {
+              response = await premiumUserService();
+              console.log("Suscripción creada exitosamente en reintento");
+            } catch (retryError: any) {
+              console.error("Error en reintento de suscripción:", retryError?.status, retryError?.message);
+              if (retryError?.status === 402) {
+                throw new Error("Aún hay problemas con tu método de pago. Por favor intenta de nuevo.");
+              }
+              throw retryError;
+            }
+          } catch (setupError: any) {
+            setInfoMessage("");
+            console.error("Error en flujo de SetupIntent:", setupError);
+            throw setupError;
+          }
+        } else {
+          // Re-lanzar otros errores
+          console.error("Error no relacionado a método de pago:", error);
+          throw error;
+        }
       }
+
       // Pequeño delay para dar tiempo a la creación del PaymentIntent o activación vía webhook
       await delay(2000);
 
-      // Si el backend decidió forzar el pago off-session, no habrá clientSecret: debemos hacer polling del perfil
+      // Si el backend decidió forzar el pago off-session (clientSecret === null)
       if (response.clientSecret === null) {
         setClientSecret(null);
         setInfoMessage(
-          "Estamos procesando tu suscripción. Esto puede tardar unos segundos..."
+          "Estamos procesando tu suscripción con tu método de pago guardado. Esto puede tardar unos segundos..."
         );
+        console.log("Modo poll activado: pago off-session");
         return { ok: true, mode: "poll" };
       }
 
-      // Si tenemos clientSecret, configuramos el PaymentSheet para confirmar el pago
+      // Si tenemos clientSecret, configuramos el PaymentSheet para confirmar el pago interactivamente
       if (response.clientSecret) {
         setClientSecret(response.clientSecret);
         setInfoMessage(
           "Confirma el pago de tu suscripción en el siguiente paso. Tras el pago, tu cuenta será activada como premium en unos segundos."
         );
+
         const { error } = await initPaymentSheet({
           paymentIntentClientSecret: response.clientSecret,
           merchantDisplayName: "Jobsy Marketplace",
@@ -107,17 +177,21 @@ function ConfirmPremiumScreen() {
             name: "Cliente Jobsy",
           },
         });
+
         if (error) {
           throw new Error(`Error al configurar pago: ${error.message}`);
         }
+        console.log("Modo payment activado: requiere confirmación de usuario");
         return { ok: true, mode: "payment" };
       }
 
       // Cualquier otro caso inesperado: pasamos a polling como fallback
       setInfoMessage("Estamos verificando el estado de tu suscripción...");
+      console.log("Modo poll activado como fallback");
       return { ok: true, mode: "poll" };
     } catch (error: any) {
       setInfoMessage("");
+      console.error("Error en initializePaymentSheet:", error);
       errAlert(
         "Error",
         error.message || "No se pudo iniciar el proceso de pago"
@@ -131,26 +205,47 @@ function ConfirmPremiumScreen() {
       errAlert("Error", "Sistema de pagos no disponible en este momento");
       return;
     }
+
+    if (!mountedRef.current) return;
+
     setIsLoading(true);
     setPaymentStatus("processing");
+
     try {
       const init = await initializePaymentSheet();
+      
       if (!init.ok) {
         setIsLoading(false);
         return;
       }
 
+      // Modo: Pago off-session (sin interacción del usuario)
       if (init.mode === "poll") {
-        // Eliminado polling: manejo inmediato sin reintentos
         setPaymentStatus("processing");
         setInfoMessage(
-          "Estamos activando tu suscripción... Revisa tu perfil en unos segundos."
+          "Estamos activando tu suscripción con tu método de pago. Por favor espera..."
         );
+
         try {
+          // Esperar a que los webhooks de Stripe procesen el pago:
+          // - payment_intent.succeeded
+          // - invoice.payment_succeeded
+          // - Usuario se marca como premium en la BD
+          // Típicamente toma 3-5 segundos, esperamos más para estar seguros
+          console.log("Esperando confirmación de webhook de pago...");
+          await delay(5000);
+
           const profile = await getUserProfile();
+          
+          if (!mountedRef.current) return;
+
+          console.log("Perfil obtenido:", { isPremium: profile?.isPremium });
+
           if (profile?.isPremium) {
             setPaymentStatus("success");
             setInfoMessage("");
+            console.log("✅ Usuario ahora es Premium");
+            
             Alert.alert(
               "¡Éxito!",
               "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
@@ -161,77 +256,109 @@ function ConfirmPremiumScreen() {
                 },
               ]
             );
+
             try {
               await sendEmail();
               okAlert(
                 "CORREO ENVIADO",
                 "Revisa tu correo para más información sobre tu suscripción Premium"
               );
-            } catch (e) {
-              console.error("Error al enviar correo (sin polling):", e);
-              errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+            } catch (emailError) {
+              console.error("Error al enviar correo:", emailError);
+              // No mostrar alerta de error si el pago se procesó correctamente
             }
           } else {
+            // El pago puede estar en proceso, mostrar mensaje informativo
             setPaymentStatus("idle");
-            errAlert(
-              "Seguimos procesando",
-              "Tu pago está en proceso. Si ya se debitó, actualiza tu perfil en unos segundos. Te enviaremos un correo con el estado."
+            setInfoMessage("");
+            
+            console.warn("⏳ Usuario aún no es Premium. El pago aún se está procesando.");
+            
+            okAlert(
+              "Procesando tu suscripción",
+              "Tu pago está siendo procesado. Te enviaremos un correo con el estado en unos minutos."
             );
+
             try {
               await sendEmail();
-              okAlert(
-                "CORREO ENVIADO",
-                "Hemos enviado un correo con información del estado de tu pago. Si no se activa en unos minutos, responde al correo o contacta soporte."
-              );
-            } catch (e) {
-              console.error("Error al enviar correo (estado pendiente):", e);
-              errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+            } catch (emailError) {
+              console.error("Error al enviar correo de estado:", emailError);
             }
           }
-        } catch (e) {
-          console.warn("Error al verificar perfil tras modo poll:", e);
+        } catch (profileError) {
+          console.error("Error al verificar perfil en modo poll:", profileError);
           setPaymentStatus("idle");
+          setInfoMessage("");
+          
+          errAlert(
+            "Verificación pendiente",
+            "No pudimos confirmar el estado de tu suscripción. Por favor revisa tu perfil en unos minutos. Te enviaremos un correo con el estado."
+          );
         }
+
         setIsLoading(false);
         return;
       }
 
-      // Modo pago interactivo con PaymentSheet
-      const { error } = await presentPaymentSheet();
-      if (error) {
-        if (error.code !== "Canceled") {
-          throw new Error(
-            error.message || "Ocurrió un error al procesar el pago"
-          );
+      // Modo: Pago interactivo con PaymentSheet
+      if (init.mode === "payment") {
+        const { error } = await presentPaymentSheet();
+
+        if (!mountedRef.current) return;
+
+        if (error) {
+          if (error.code === "Canceled") {
+            setPaymentStatus("idle");
+            setInfoMessage("");
+            errAlert("Pago cancelado", "Has cancelado el proceso de pago");
+          } else {
+            throw new Error(
+              error.message || "Ocurrió un error al procesar el pago"
+            );
+          }
         } else {
-          setPaymentStatus("idle");
-          errAlert("Pago cancelado", "Has cancelado el proceso de pago");
-        }
-      } else {
-        setPaymentStatus("success");
-        Alert.alert(
-          "¡Éxito!",
-          "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
-          [{ text: "Aceptar", onPress: () => router.replace("/(tabs)/perfil") }]
-        );
-        try {
-          await sendEmail();
-          okAlert(
-            "CORREO ENVIADO",
-            "Revisa tu correo para más información sobre tu suscripción Premium"
+          // Pago exitoso
+          setPaymentStatus("success");
+          setInfoMessage("");
+
+          Alert.alert(
+            "¡Éxito!",
+            "¡Ahora eres usuario Premium! Disfruta de todos los beneficios.",
+            [
+              {
+                text: "Aceptar",
+                onPress: () => router.replace("/(tabs)/perfil"),
+              },
+            ]
           );
-        } catch {
-          errAlert("CORREO NO ENVIADO", "OCURRIO UN ERROR");
+
+          try {
+            await sendEmail();
+            okAlert(
+              "CORREO ENVIADO",
+              "Revisa tu correo para más información sobre tu suscripción Premium"
+            );
+          } catch (emailError) {
+            console.error("Error al enviar correo después de pago exitoso:", emailError);
+            // No mostrar alerta de error si el pago se procesó correctamente
+          }
         }
       }
     } catch (error: any) {
+      if (!mountedRef.current) return;
+
       setPaymentStatus("error");
+      setInfoMessage("");
+      
+      console.error("Error en handlePayment:", error);
       errAlert(
-        "Error",
-        error.message || "Ocurrió un error al procesar el pago"
+        "Error en el proceso",
+        error.message || "Ocurrió un error al procesar tu suscripción. Por favor intenta de nuevo."
       );
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 

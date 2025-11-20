@@ -6,7 +6,20 @@ export interface PremiumUserResponse {
   subscriptionId?: string;
   status?: string;
   requiresPaymentMethod?: boolean;
+  setupIntentUrl?: string;
+  error?: string;
   message?: string;
+  alreadyPremium?: boolean;
+  currentPeriodEnd?: string; 
+  trialEnd?: string;
+}
+
+export interface PremiumUserError {
+  status: number;
+  requiresPaymentMethod?: boolean;
+  setupIntentUrl?: string;
+  message?: string;
+  error?: string;
 }
 
 export async function premiumUserService(): Promise<PremiumUserResponse> {
@@ -31,16 +44,29 @@ export async function premiumUserService(): Promise<PremiumUserResponse> {
       throw new Error("Respuesta inválida del servidor");
     }
   } catch (error: any) {
-    console.error("Error en premiumUserService:", error?.message);
+    console.error("Error en premiumUserService:", error?.response?.status, error?.message);
 
-    if (error?.message?.includes("network")) {
-      throw new Error("Error de conexión. Verifica tu internet");
-    } else if (error?.message?.includes("401")) {
+    // Manejar error 402 - Requiere método de pago
+    if (error?.response?.status === 402) {
+      const errorData = error.response.data;
+      const premiumError: PremiumUserError = {
+        status: 402,
+        requiresPaymentMethod: errorData.requiresPaymentMethod,
+        setupIntentUrl: errorData.setupIntentUrl,
+        message: errorData.message || "Se requiere un método de pago",
+        error: errorData.error,
+      };
+      throw premiumError;
+    }
+
+    if (error?.response?.status === 401) {
       throw new Error("Sesión expirada. Por favor inicia sesión nuevamente");
-    } else if (error?.message?.includes("403")) {
+    } else if (error?.response?.status === 403) {
       throw new Error("No tienes permiso para realizar esta acción");
-    } else if (error?.message?.includes("404")) {
+    } else if (error?.response?.status === 404) {
       throw new Error("Usuario no encontrado");
+    } else if (error?.response?.status === 500) {
+      throw new Error(error?.response?.data?.details || "Error del servidor");
     }
 
     throw error;
@@ -66,12 +92,13 @@ export async function createPremiumSetupIntentService(): Promise<{
     );
 
     if (response.status === 200 && response.data) {
+      console.log("SetupIntent obtenido exitosamente");
       return response.data;
     } else {
       throw new Error("No se pudo obtener el SetupIntent");
     }
   } catch (error: any) {
-    console.error("Error en createPremiumSetupIntentService:", error?.message);
+    console.error("Error en createPremiumSetupIntentService:", error?.response?.status, error?.message);
     throw error;
   }
 }

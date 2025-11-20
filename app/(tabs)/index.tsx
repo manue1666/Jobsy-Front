@@ -69,20 +69,20 @@ export default function MainFeedScreen() {
 
   return (
     <ScreenContainer>
-      {/* Header con la estructura correcta */}
+      {/* Header start */}
       <FeedHeader
         userData={getSafeUserData()}
         onProfilePress={() => router.push("/perfil")}
         onNearbyPress={handleNearbyPress}
         loading={locationLoading}
       />
-
       <SearchBar
         placeholder="Buscar servicios..."
         value={searchText}
         onChangeText={setSearchText}
         onSearchPress={() => fetchServices(1, searchText)}
       />
+      {/* Header ends */}
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}

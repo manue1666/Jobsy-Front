@@ -4,16 +4,23 @@ import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 type AlertType = 'success' | 'error';
 
+type AlertButton = {
+  text: string;
+  onPress?: () => void;
+  style?: 'default' | 'cancel' | 'destructive';
+};
+
 type AlertState = {
   visible: boolean;
   type: AlertType;
   title: string;
   message: string;
+  buttons?: AlertButton[];
 };
 
 type AlertContextType = {
-  okAlert: (title: string, message: string) => void;
-  errAlert: (title: string, message: string) => void;
+  okAlert: (title: string, message: string, buttons?: AlertButton[]) => void;
+  errAlert: (title: string, message: string, buttons?: AlertButton[]) => void;
 };
 
 const AlertContext = createContext<AlertContextType | undefined>(undefined);
@@ -30,16 +37,35 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
     type: 'success',
     title: '',
     message: '',
+    buttons: undefined,
   });
 
-  const showAlert = (type: AlertType, title: string, message: string) => {
-    setState({ visible: true, type, title, message });
+  const showAlert = (
+    type: AlertType, 
+    title: string, 
+    message: string, 
+    buttons?: AlertButton[]
+  ) => {
+    setState({ visible: true, type, title, message, buttons });
+  };
+ 
+  const okAlert = (title: string, message: string, buttons?: AlertButton[]) => 
+    showAlert('success', title, message, buttons);
+  
+  const errAlert = (title: string, message: string, buttons?: AlertButton[]) => 
+    showAlert('error', title, message, buttons);
+
+  const handleClose = () => {
+    setState(s => ({ ...s, visible: false }));
   };
 
-  const okAlert = (title: string, message: string) => showAlert('success', title, message);
-  const errAlert = (title: string, message: string) => showAlert('error', title, message);
+  const handleButtonPress = (button: AlertButton) => {
+    handleClose();
+    button.onPress?.();
+  };
 
-  const handleClose = () => setState(s => ({ ...s, visible: false }));
+  // Si no se proporcionan botones personalizados, usar botón por defecto
+  const displayButtons = state.buttons || [{ text: 'OK', onPress: undefined }];
 
   return (
     <AlertContext.Provider value={{ okAlert, errAlert }}>
@@ -51,21 +77,51 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
         onRequestClose={handleClose}
       >
         <View className="flex-1 bg-black/40 justify-center items-center">
-          <View className={`w-80 p-7 rounded-2xl items-center border ${state.type === 'success' ? 'bg-green-100 border-green-400' : 'bg-red-100 border-red-400'} shadow-lg`} style={{ elevation: 8 }}>
+          <View 
+            className={`w-80 p-7 rounded-2xl items-center border ${
+              state.type === 'success' 
+                ? 'bg-green-100 border-green-400' 
+                : 'bg-red-100 border-red-400'
+            } shadow-lg`} 
+            style={{ elevation: 8 }}
+          >
             <MaterialIcons
               name={state.type === 'success' ? 'check-circle' : 'error-outline'}
               size={56}
               color={state.type === 'success' ? '#22c55e' : '#ef4444'}
               style={{ marginBottom: 10 }}
             />
-            <Text className={`text-2xl font-bold mb-2 ${state.type === 'success' ? 'text-green-700' : 'text-red-700'}`}>{state.title}</Text>
-            <Text className={`text-base mb-6 text-center ${state.type === 'success' ? 'text-green-900' : 'text-red-900'}`}>{state.message}</Text>
-            <TouchableOpacity
-              className={`${state.type === 'success' ? 'bg-green-600' : 'bg-red-600'} px-8 py-3 rounded-full shadow`}
-              onPress={handleClose}
+            <Text 
+              className={`text-2xl font-bold mb-2 ${
+                state.type === 'success' ? 'text-green-700' : 'text-red-700'
+              }`}
             >
-              <Text className="text-white font-bold text-lg tracking-wide">OK</Text>
-            </TouchableOpacity>
+              {state.title}
+            </Text>
+            <Text 
+              className={`text-base mb-6 text-center ${
+                state.type === 'success' ? 'text-green-900' : 'text-red-900'
+              }`}
+            >
+              {state.message}
+            </Text>
+            
+            {/* Renderizar botones personalizados o botón por defecto */}
+            <View className="flex-row gap-3">
+              {displayButtons.map((button, index) => (
+                <TouchableOpacity
+                  key={index}
+                  className={`${
+                    state.type === 'success' ? 'bg-green-600' : 'bg-red-600'
+                  } px-8 py-3 rounded-full shadow`}
+                  onPress={() => handleButtonPress(button)}
+                >
+                  <Text className="text-white font-bold text-lg tracking-wide">
+                    {button.text}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
         </View>
       </Modal>

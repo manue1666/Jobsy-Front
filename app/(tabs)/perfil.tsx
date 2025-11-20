@@ -61,18 +61,27 @@ export default function ProfileScreen() {
     try {
       const userId = profileData?.user?._id;
 
-      Alert.alert(
+      errAlert(
         "Confirmar",
-        "Estas seguro de que deseas eliminar tu cuenta?",
+        "¿Estás seguro de que deseas eliminar tu cuenta?",
         [
-          { text: "Cancelar", style: "cancel" },
+          { 
+            text: "Cancelar", 
+            style: "cancel",
+            onPress: undefined
+          },
           {
-            text: "Si, eliminar",
+            text: "Sí, eliminar",
             style: "destructive",
             onPress: async () => {
-              await deleteUserProfile(userId);
-              await AsyncStorage.removeItem("token");
-              router.replace("/(auth)");
+              try {
+                await deleteUserProfile(userId);
+                await AsyncStorage.removeItem("token");
+                router.replace("/(auth)");
+              } catch (deleteError: any) {
+                errAlert('Error', deleteError.message || 'No se pudo eliminar la cuenta');
+                console.log(deleteError);
+              }
             },
           },
         ]

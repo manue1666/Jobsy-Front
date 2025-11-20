@@ -9,6 +9,7 @@ interface SearchBarProps {
   onChangeText?: (text: string) => void;
   onSearchPress?: () => void;
 }
+ 
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   placeholder = "Buscar...",

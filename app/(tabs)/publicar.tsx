@@ -48,6 +48,11 @@ export default function PublicarScreen() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [isPremium, setIsPremium] = useState<boolean>(false);
   const [servicesCount, setServicesCount] = useState<number>(0);
+  const [geocodeError, setGeocodeError] = useState<{
+    message: string;
+    suggestions?: string[];
+    detectedAddress?: string;
+  } | null>(null);
   const { okAlert, errAlert } = useAlert();
 
   const validateForm = (): boolean => {
@@ -96,6 +101,7 @@ export default function PublicarScreen() {
 
     try {
       setIsLoading(true);
+      setGeocodeError(null);
 
       await createService(
         {
@@ -107,25 +113,48 @@ export default function PublicarScreen() {
           address: serviceData.address,
           tipo: serviceData.serviceTypes,
         },
-        serviceData.images // Pasa las URIs de las imágenes
+        serviceData.images
       );
 
       okAlert("Éxito", "Servicio publicado correctamente");
-
       router.replace("/(tabs)");
+
     } catch (error: any) {
-      if (
-        error?.message &&
-        error.message.toLowerCase().includes("geocodific")
-      ) {
+      console.error("Error al publicar el servicio:", error);
+
+      // Manejar errores de geocodificación (sin 'low_confidence')
+      if (error?.code && (
+        error.code === 'no_results' ||
+        error.code === 'address_too_short' ||
+        error.code === 'timeout' ||
+        error.code === 'network_error'
+      )) {
+        setGeocodeError({
+          message: error.message,
+          suggestions: error.suggestions,
+          detectedAddress: error.detectedAddress,
+        });
+
         errAlert(
-          "Dirección inválida",
-          "No pudimos encontrar la ubicación. Verifica que la dirección sea correcta y específica."
+          "Dirección no válida",
+          "Hubo un problema con la dirección proporcionada. Revisa las sugerencias a continuación."
+        );
+      } else if (error?.message?.includes('teléfono ya está registrado')) {
+        errAlert(
+          "Teléfono duplicado",
+          "Este número de teléfono ya está registrado en otro servicio."
+        );
+      } else if (error?.message?.includes('límite de servicios')) {
+        errAlert(
+          "Límite alcanzado",
+          error.message
         );
       } else {
-        errAlert("Error", "No se pudo publicar el servicio intenta más tarde");
+        errAlert(
+          "Error",
+          error.message || "No se pudo publicar el servicio. Intenta más tarde"
+        );
       }
-      console.error("Error al publicar el servicio:", error);
     } finally {
       setIsLoading(false);
     }
@@ -134,9 +163,14 @@ export default function PublicarScreen() {
   const updateServiceData = (field: keyof ServiceData, value: any) => {
     setServiceData((prev) => ({ ...prev, [field]: value }));
 
-    // Clear error when user starts typing
+    // Limpiar errores al escribir
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+    
+    // Limpiar error de geocodificación si se está editando la dirección
+    if (field === 'address' && geocodeError) {
+      setGeocodeError(null);
     }
   };
 
@@ -249,7 +283,42 @@ export default function PublicarScreen() {
               console.log("Location selected:", location);
             }}
           />
-          {errors.address && (
+          
+          {/* Mostrar error de geocodificación con sugerencias */}
+          {geocodeError && (
+            <View className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <Text className="text-red-800 font-semibold mb-2">
+                ⚠️ Problema con la dirección
+              </Text>
+              <Text className="text-red-700 text-sm mb-3">
+                {geocodeError.message}
+              </Text>
+              
+              {geocodeError.suggestions && geocodeError.suggestions.length > 0 && (
+                <View className="mb-2">
+                  <Text className="text-red-800 font-semibold text-sm mb-1">
+                    Sugerencias:
+                  </Text>
+                  {geocodeError.suggestions.map((suggestion, index) => (
+                    <Text key={index} className="text-red-700 text-xs ml-2 mb-1">
+                      • {suggestion}
+                    </Text>
+                  ))}
+                </View>
+              )}
+              
+              {geocodeError.detectedAddress && (
+                <View className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                  <Text className="text-yellow-800 text-xs">
+                    <Text className="font-semibold">Dirección detectada:</Text>{'\n'}
+                    {geocodeError.detectedAddress}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+          
+          {errors.address && !geocodeError && (
             <View className="-mt-4 mb-4">
               <Text className="text-red-500 text-xs">{errors.address}</Text>
             </View>

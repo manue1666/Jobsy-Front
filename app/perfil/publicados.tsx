@@ -85,11 +85,15 @@ export default function MainFeedScreen() {
   };
 
   const handleLongPress = (serviceId: string) => {
-    Alert.alert(
+    errAlert(
       "Eliminar servicio",
       "¿Estás seguro de que deseas eliminar este servicio?",
       [
-        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Cancelar", 
+          style: "cancel",
+          onPress: undefined // No hace nada, solo cierra la alerta
+        },
         {
           text: "Eliminar",
           style: "destructive",
@@ -108,8 +112,7 @@ export default function MainFeedScreen() {
             }
           },
         },
-      ],
-      { cancelable: true }
+      ]
     );
   };
 
