@@ -1,9 +1,8 @@
 import { useState, useCallback } from "react";
-import { getNearbyServices, searchService } from '@/helpers/search_service';
+import { searchService } from '@/helpers/search_service';
 import { addFavorite, removeFavorite } from '@/helpers/favorites';
-import { getUserLocation } from '@/helpers/location';
-import { useSearchRange } from "@/context/searchRangeContext";
 import { useAlert } from "@/components/mainComponents/Alerts";
+import { FilterState } from "@/components/mainComponents/principal/FilterPanel";
 
 const defaultServiceImage = "@/assets/images/service_default_image.png";
 
@@ -19,6 +18,7 @@ export interface ServicePost {
   favoritesCount?: number;
   isPromoted?: boolean;
   profilePhoto?: string;
+  distance?: number; // NUEVO: distancia en metros
   user?: {
     _id: string;
     name: string;
@@ -28,16 +28,18 @@ export interface ServicePost {
 }
 
 export function useServices() {
-  
   const [searchText, setSearchText] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [services, setServices] = useState<ServicePost[]>([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const { searchRange } = useSearchRange();
-  const { okAlert, errAlert } = useAlert();
+  const [filters, setFilters] = useState<FilterState>({
+    searchText: '',
+    nearbyEnabled: false,
+    maxDistance: 10000,
+  });
+  const { errAlert } = useAlert();
 
   const transformServiceData = useCallback(
     (apiServices: any[]): ServicePost[] => {
@@ -57,6 +59,7 @@ export function useServices() {
           isFavorite: service.isFavorite || false,
           favoritesCount: service.favoritesCount || 0,
           isPromoted: service.isPromoted || false,
+          distance: service.distance, // NUEVO
           profilePhoto: resolvedUser?.profilePhoto,
           user: service.user
             ? {
@@ -73,14 +76,40 @@ export function useServices() {
   );
 
   const fetchServices = useCallback(
-    async (pageNum = 1, searchQuery = "") => {
+    async (pageNum = 1, currentFilters?: FilterState) => {
       try {
         setLoading(true);
-        const result = await searchService({
-          query: searchQuery,
+        const filtersToUse = currentFilters || filters;
+
+        const params: any = {
           page: pageNum,
           limit: 10,
-        });
+        };
+
+        // Agregar texto de búsqueda
+        if (filtersToUse.searchText) {
+          params.query = filtersToUse.searchText;
+        }
+
+        // Agregar geolocalización si está activada
+        if (filtersToUse.nearbyEnabled && filtersToUse.latitude && filtersToUse.longitude) {
+          params.latitude = filtersToUse.latitude;
+          params.longitude = filtersToUse.longitude;
+          params.maxDistance = filtersToUse.maxDistance;
+        }
+
+        // Agregar categoría si existe
+        if (filtersToUse.category) {
+          params.category = filtersToUse.category;
+        }
+
+        // Agregar ordenamiento si existe
+        if (filtersToUse.sortBy) {
+          params.sortBy = filtersToUse.sortBy;
+        }
+
+        const result = await searchService(params);
+
         setServices((prev) =>
           pageNum === 1
             ? transformServiceData(result.services)
@@ -89,10 +118,9 @@ export function useServices() {
         setTotalPages(result.pages);
         setPage(pageNum);
 
-        if(!result.services || result.services.length===0){
-          errAlert("Error","No se encontraron servicios.");
+        if (!result.services || result.services.length === 0) {
+          errAlert("Info", "No se encontraron servicios con estos filtros");
         }
-
       } catch (error: any) {
         errAlert("Error", error.message || "No se pudieron cargar los servicios");
       } finally {
@@ -100,8 +128,22 @@ export function useServices() {
         setIsRefreshing(false);
       }
     },
-    [transformServiceData]
+    [transformServiceData, filters]
   );
+
+  const handleApplyFilters = useCallback((newFilters: FilterState) => {
+    setFilters(newFilters);
+    setSearchText(newFilters.searchText);
+    fetchServices(1, newFilters);
+  }, [fetchServices]);
+
+  const getActiveFiltersCount = useCallback(() => {
+    let count = 0;
+    if (filters.nearbyEnabled) count++;
+    if (filters.category) count++;
+    if (filters.searchText) count++;
+    return count;
+  }, [filters]);
 
   const handleToggleFavorite = useCallback(
     async (serviceId: string, isCurrentlyFavorite: boolean) => {
@@ -126,30 +168,11 @@ export function useServices() {
     []
   );
 
-  const handleNearbyPress = useCallback(async () => {
-    try {
-      setLocationLoading(true);
-      const coords = await getUserLocation();
-      if (!coords) return;
-      const nearbyServices = await getNearbyServices(coords, searchRange);
-      setServices(transformServiceData(nearbyServices));
-    } catch (error: any) {
-      errAlert(
-        "Error",
-        error.message ||
-          "No se pudieron cargar los servicios cercanos, inténtelo más nuevamente"
-      );
-      console.error(error);
-    } finally {
-      setLocationLoading(false);
-    }
-  }, [transformServiceData, searchRange]);
-
   const handleLoadMore = useCallback(() => {
     if (page < totalPages && !loading) {
-      fetchServices(page + 1, searchText);
+      fetchServices(page + 1);
     }
-  }, [page, totalPages, loading, searchText, fetchServices]);
+  }, [page, totalPages, loading, fetchServices]);
 
   return {
     searchText,
@@ -157,18 +180,14 @@ export function useServices() {
     isRefreshing,
     setIsRefreshing,
     services,
-    setServices,
     page,
-    setPage,
     totalPages,
-    setTotalPages,
     loading,
-    setLoading,
-    locationLoading,
-    setLocationLoading,
+    filters,
     fetchServices,
     handleToggleFavorite,
-    handleNearbyPress,
+    handleApplyFilters,
     handleLoadMore,
+    getActiveFiltersCount,
   };
 }

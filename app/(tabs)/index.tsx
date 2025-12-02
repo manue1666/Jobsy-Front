@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   View,
@@ -8,21 +8,17 @@ import {
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { SearchBar } from '@/components/mainComponents/favoritos/searchBar';
 import { FeedHeader } from '@/components/mainComponents/principal/header';
+import { FilterPanel } from '@/components/mainComponents/principal/FilterPanel';
 import { useRouter } from 'expo-router';
 import { BannerBoost } from "@/components/mainComponents/principal/bannerBoost";
-import { useServices } from "@/hooks/useServices"; // Movido fuera de (tabs)
-import { useUserProfile } from "@/hooks/useUserProfile"; // Movido fuera de (tabs)
-import { ServiceList } from "@/components/mainComponents/principal/ServiceList"; // Movido fuera de (tabs)
-import { isCloseToBottom } from "@/helpers/scrollUtils"; // Movido fuera de (tabs)
-
-export const BOOST_PLANS = {
-  "24h": { amount: 150, durationMs: 24 * 60 * 60 * 1000 },
-  "72h": { amount: 350, durationMs: 72 * 60 * 60 * 1000 },
-  "1week": { amount: 600, durationMs: 7 * 24 * 60 * 60 * 1000 },
-};
+import { useServices } from "@/hooks/useServices";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { ServiceList } from "@/components/mainComponents/principal/ServiceList";
+import { isCloseToBottom } from "@/helpers/scrollUtils";
 
 export default function MainFeedScreen() {
-  // Hooks custom extraídos
+  const [filterPanelVisible, setFilterPanelVisible] = useState(false);
+  
   const {
     searchText,
     setSearchText,
@@ -31,16 +27,17 @@ export default function MainFeedScreen() {
     services,
     loading,
     page,
+    filters,
     fetchServices,
     handleToggleFavorite,
-    handleNearbyPress,
+    handleApplyFilters,
     handleLoadMore,
-    locationLoading,
+    getActiveFiltersCount,
   } = useServices();
+  
   const { profileData, loadProfileData } = useUserProfile();
   const router = useRouter();
 
-  // Helper para datos de usuario seguro
   const getSafeUserData = React.useCallback(
     () => ({
       name: profileData?.user?.name || "Usuario",
@@ -50,12 +47,16 @@ export default function MainFeedScreen() {
     [profileData]
   );
 
-  // Actualizar automáticamente perfil y servicios
   React.useEffect(() => {
     loadProfileData();
     fetchServices();
     // eslint-disable-next-line
   }, []);
+
+  // Manejar búsqueda solo cuando se presiona el botón
+  const handleSearch = () => {
+    handleApplyFilters({ ...filters, searchText });
+  };
 
   if (loading && page === 1) {
     return (
@@ -69,20 +70,27 @@ export default function MainFeedScreen() {
 
   return (
     <ScreenContainer>
-      {/* Header start */}
       <FeedHeader
         userData={getSafeUserData()}
         onProfilePress={() => router.push("/perfil")}
-        onNearbyPress={handleNearbyPress}
-        loading={locationLoading}
+        onFilterPress={() => setFilterPanelVisible(true)}
+        activeFiltersCount={getActiveFiltersCount()}
       />
+      
       <SearchBar
         placeholder="Buscar servicios..."
         value={searchText}
-        onChangeText={setSearchText}
-        onSearchPress={() => fetchServices(1, searchText)}
+        onChangeText={setSearchText} // Solo actualiza el estado local
+        onSearchPress={handleSearch} // Busca solo al presionar
       />
-      {/* Header ends */}
+
+      <FilterPanel
+        visible={filterPanelVisible}
+        onClose={() => setFilterPanelVisible(false)}
+        onApply={handleApplyFilters}
+        currentFilters={filters}
+      />
+
       <ScrollView
         className="flex-1"
         showsVerticalScrollIndicator={false}
@@ -91,7 +99,7 @@ export default function MainFeedScreen() {
             refreshing={isRefreshing}
             onRefresh={() => {
               setIsRefreshing(true);
-              fetchServices(1, searchText);
+              fetchServices(1);
             }}
           />
         }
@@ -102,11 +110,7 @@ export default function MainFeedScreen() {
         }}
         scrollEventThrottle={400}
       >
-
-        {/* banner boost */}
-        <BannerBoost/>
-
-        {/* Lista de servicios modularizada */}
+        <BannerBoost />
         <ServiceList
           services={services}
           loading={loading}
@@ -127,5 +131,3 @@ export default function MainFeedScreen() {
     </ScreenContainer>
   );
 }
-
-// isCloseToBottom ahora está en scrollUtils.ts

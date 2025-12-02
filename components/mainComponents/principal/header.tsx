@@ -1,6 +1,6 @@
 // components/mainComponents/principal/header.tsx
 import React, { useContext } from 'react';
-import { View, Text, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ThemeContext } from '@/context/themeContext';
 
@@ -12,20 +12,19 @@ interface UserData {
 interface FeedHeaderProps {
   userData?: UserData;
   onProfilePress?: () => void;
-  onNearbyPress?: () => void;
-  loading?: boolean;
+  onFilterPress?: () => void; // Nuevo: abrir panel de filtros
+  activeFiltersCount?: number; // Nuevo: mostrar badge
 }
- 
+
 export const FeedHeader: React.FC<FeedHeaderProps> = ({
   userData,
   onProfilePress = () => {},
-  onNearbyPress = () => {},
-  loading = false
+  onFilterPress = () => {},
+  activeFiltersCount = 0,
 }) => {
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
 
-  // Valores por defecto seguros
   const safeUserData = {
     name: 'Usuario',
     profilePhoto: 'https://via.placeholder.com/150',
@@ -53,23 +52,26 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({
         </Text>
       </TouchableOpacity>
 
-      {/* Right side - Nearby Services */}
+      {/* Right side - Filter Button */}
       <TouchableOpacity
-        onPress={onNearbyPress}
-        className={`p-2 rounded-full ${
+        onPress={onFilterPress}
+        className={`p-2 rounded-full relative ${
           isDark ? 'bg-gray-800' : 'bg-gray-100'
         }`}
         activeOpacity={0.7}
-        disabled={loading}
       >
-        {loading ? (
-          <ActivityIndicator size="small" color={isDark ? '#E5E7EB' : '#374151'} />
-        ) : (
-          <Ionicons
-            name="location-outline"
-            size={24}
-            color={isDark ? '#E5E7EB' : '#374151'}
-          />
+        <Ionicons
+          name="filter-outline"
+          size={24}
+          color={isDark ? '#E5E7EB' : '#374151'}
+        />
+        {/* Badge de filtros activos */}
+        {activeFiltersCount > 0 && (
+          <View className="absolute -top-1 -right-1 bg-blue-500 rounded-full w-5 h-5 items-center justify-center">
+            <Text className="text-white text-xs font-bold">
+              {activeFiltersCount}
+            </Text>
+          </View>
         )}
       </TouchableOpacity>
     </View>

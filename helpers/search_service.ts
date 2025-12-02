@@ -19,9 +19,13 @@ interface Service {
   updatedAt: string;
   __v: number;
   isFavorite: boolean;
+  favoritesCount?: number;
+  isPromoted?: boolean;
+  distance?: number; // distancia en metros
   user: {
     _id: string;
     name: string;
+    profilePhoto?: string;
   };
 }
 
@@ -33,10 +37,16 @@ interface SearchResponse {
 }
 
 interface SearchParams {
-  query?: string;      // Filtro por categoría
-  page?: number;       // Número de página
-  limit?: number;      // Items por página (opcional)
-  ownerId?: string
+  query?: string;
+  page?: number;
+  limit?: number;
+  ownerId?: string;
+  category?: string;
+  //  parámetros de geolocalización
+  latitude?: number;
+  longitude?: number;
+  maxDistance?: number;
+  sortBy?: 'distance' | 'createdAt' | 'favorites' | 'promoted';
 }
 
 export const searchService = async (params?: SearchParams): Promise<SearchResponse> => {
@@ -51,6 +61,13 @@ export const searchService = async (params?: SearchParams): Promise<SearchRespon
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.limit) queryParams.append('limit', params.limit.toString());
     if (params?.ownerId) queryParams.append('ownerId', params.ownerId);
+    if (params?.category) queryParams.append('category', params.category);
+    
+    // NUEVOS parámetros de geolocalización
+    if (params?.latitude) queryParams.append('latitude', params.latitude.toString());
+    if (params?.longitude) queryParams.append('longitude', params.longitude.toString());
+    if (params?.maxDistance) queryParams.append('maxDistance', params.maxDistance.toString());
+    if (params?.sortBy) queryParams.append('sortBy', params.sortBy);
 
     const url = `/service/search?${queryParams.toString()}`;
 
