@@ -75,10 +75,13 @@ export default function SuscriptionsScreen() {
         options={{
           title: "Informacion de la suscripción",
           headerStyle: { backgroundColor: isDark ? "#111823" : "#ffffff" },
-          headerTintColor: isDark ? "#ffffff" : "#000000", // Color del botón back
+          headerTintColor: isDark ? "#ffffff" : "#000000",
         }}
       />
-      <ScrollView className="flex-1 px-6 py-6">
+      <ScrollView 
+        className="flex-1 px-6 py-6"
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
         <Text className={`text-3xl font-bold mb-6 text-center ${textColor}`}>
           Suscripción Premium
         </Text>

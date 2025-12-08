@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { AlertProvider } from '@/components/mainComponents/Alerts';
-import { DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider as NavigationThemeProvider } from '@react-navigation/native'; // ← CAMBIAR
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -13,6 +13,7 @@ import ThemeProvider from '@/context/themeContext';
 import { StripeInitializer } from '@/components/StripeInitializer';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 
 export {
@@ -57,29 +58,39 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const skipAuth = process.env.EXPO_PUBLIC_SKIP_AUTH === 'true';
 
+  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+
   if (skipAuth) {
     return (
-      <AlertProvider>
-        <StripeInitializer />
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        </Stack>
-      </AlertProvider>
+      <SafeAreaProvider>
+        <NavigationThemeProvider value={theme}>
+          <AlertProvider>
+            <StripeInitializer />
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            </Stack>
+          </AlertProvider>
+        </NavigationThemeProvider>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <ThemeProvider>
-      <SearchRangeProvider>
-        <AlertProvider>
-          <StripeInitializer />
-          <Stack>
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          </Stack>
-        </AlertProvider>
-      </SearchRangeProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <NavigationThemeProvider value={theme}> 
+        <ThemeProvider>
+          <SearchRangeProvider>
+            <AlertProvider>
+              <StripeInitializer />
+              <Stack>
+                <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              </Stack>
+            </AlertProvider>
+          </SearchRangeProvider>
+        </ThemeProvider>
+      </NavigationThemeProvider>
+    </SafeAreaProvider>
   );
 }

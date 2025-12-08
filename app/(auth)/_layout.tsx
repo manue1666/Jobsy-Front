@@ -2,10 +2,12 @@ import { ThemeContext } from '@/context/themeContext';
 import { Tabs } from 'expo-router';
 import { useContext } from 'react';
 import { View, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AuthLayout() {
   const {currentTheme} = useContext(ThemeContext);
   const isDark = currentTheme === 'dark';
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -14,8 +16,8 @@ export default function AuthLayout() {
         tabBarStyle: {
           backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
           borderTopColor: isDark ? '#374151' : '#E5E7EB',
-          height: 80,
-          paddingBottom: 20,
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
           paddingTop: 10,
         },
         tabBarActiveTintColor: '#3B82F6',

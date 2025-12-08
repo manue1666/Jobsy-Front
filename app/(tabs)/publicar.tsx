@@ -19,6 +19,7 @@ interface ServiceData {
   serviceName: string;
   description: string;
   address: string;
+  coordinates: { latitude: number | null; longitude: number | null };
   phone: string;
   email: string;
   serviceTypes: string[];
@@ -40,9 +41,10 @@ export default function PublicarScreen() {
     serviceName: "",
     description: "",
     address: "",
+    coordinates: { latitude: null, longitude: null },
     phone: "",
     email: "",
-    serviceTypes: [], // Ahora es opcional
+    serviceTypes: [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -68,29 +70,29 @@ export default function PublicarScreen() {
 
     if (!serviceData.address.trim()) {
       newErrors.address = "La dirección es requerida";
+    } else if (!serviceData.coordinates.latitude || !serviceData.coordinates.longitude) {
+      //  Verificar que existan coordenadas
+      newErrors.address = "Por favor, verifica la dirección o usa GPS para confirmar la ubicación";
     }
 
     if (!serviceData.phone.trim()) {
       newErrors.phone = "El teléfono es requerido";
     } else {
-      // Solo números, entre 10 y 15 dígitos
-      const digits = serviceData.phone.replace(/\D/g, "");
-      if (digits.length < 10 || digits.length > 15) {
-        newErrors.phone = "Ingresa un teléfono válido";
+      const phoneRegex = /^\+?\d{7,15}$/;
+      if (!phoneRegex.test(serviceData.phone.replace(/[\s-]/g, ''))) {
+        newErrors.phone = "Formato de teléfono inválido (7-15 dígitos)";
       }
     }
 
     if (!serviceData.email.trim()) {
-      newErrors.email = "El correo es requerido";
+      newErrors.email = "El email es requerido";
     } else if (!/\S+@\S+\.\S+/.test(serviceData.email)) {
-      newErrors.email = "Ingresa un correo válido";
+      newErrors.email = "Email inválido";
     }
 
     if (!selectedCategory) {
-      newErrors.category = "Selecciona una categoría";
+      newErrors.category = "Debes seleccionar una categoría";
     }
-
-    // Eliminada la validación de serviceTypes
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -111,6 +113,8 @@ export default function PublicarScreen() {
           phone: serviceData.phone,
           email: serviceData.email,
           address: serviceData.address,
+          latitude: serviceData.coordinates.latitude,
+          longitude: serviceData.coordinates.longitude,
           tipo: serviceData.serviceTypes,
         },
         serviceData.images
@@ -183,6 +187,7 @@ export default function PublicarScreen() {
         serviceName: "",
         description: "",
         address: "",
+        coordinates: { latitude: null, longitude: null }, // ← RESETEAR
         phone: "",
         email: "",
         serviceTypes: [],
@@ -277,51 +282,29 @@ export default function PublicarScreen() {
           {/* Address */}
           <LocationInput
             value={serviceData.address}
+            coordinates={serviceData.coordinates} // ← PASAR COORDENADAS
             onChangeText={(text) => updateServiceData("address", text)}
             onLocationSelect={(location) => {
-              updateServiceData("address", location.address);
-              console.log("Location selected:", location);
+              // Actualizar ambos: dirección Y coordenadas
+              setServiceData(prev => ({
+                ...prev,
+                address: location.address,
+                coordinates: {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }
+              }));
+              // Limpiar error de dirección si existe
+              if (errors.address) {
+                setErrors(prev => ({ ...prev, address: undefined }));
+              }
+              if (geocodeError) {
+                setGeocodeError(null);
+              }
             }}
           />
-          
-          {/* Mostrar error de geocodificación con sugerencias */}
-          {geocodeError && (
-            <View className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <Text className="text-red-800 font-semibold mb-2">
-                ⚠️ Problema con la dirección
-              </Text>
-              <Text className="text-red-700 text-sm mb-3">
-                {geocodeError.message}
-              </Text>
-              
-              {geocodeError.suggestions && geocodeError.suggestions.length > 0 && (
-                <View className="mb-2">
-                  <Text className="text-red-800 font-semibold text-sm mb-1">
-                    Sugerencias:
-                  </Text>
-                  {geocodeError.suggestions.map((suggestion, index) => (
-                    <Text key={index} className="text-red-700 text-xs ml-2 mb-1">
-                      • {suggestion}
-                    </Text>
-                  ))}
-                </View>
-              )}
-              
-              {geocodeError.detectedAddress && (
-                <View className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <Text className="text-yellow-800 text-xs">
-                    <Text className="font-semibold">Dirección detectada:</Text>{'\n'}
-                    {geocodeError.detectedAddress}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-          
-          {errors.address && !geocodeError && (
-            <View className="-mt-4 mb-4">
-              <Text className="text-red-500 text-xs">{errors.address}</Text>
-            </View>
+          {errors.address && (
+            <Text className="text-red-500 text-sm mt-1">{errors.address}</Text>
           )}
 
           {/* Phone */}

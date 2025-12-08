@@ -17,6 +17,8 @@ export async function createService(
     phone: string;
     email: string;
     address: string;
+    latitude?: number | null;   
+    longitude?: number | null;  
     tipo: string[];
   },
   images: string[] // URIs de las imágenes
@@ -39,15 +41,24 @@ export async function createService(
     // 2. Agregar otros campos
     Object.keys(serviceData).forEach(key => {
       const value = serviceData[key as keyof typeof serviceData];
-      formData.append(
-        key,
-        key === 'tipo'
-          ? JSON.stringify(value) // Array a string
-          : String(value) // Convertir explícitamente a string
-      );
+      
+      // Solo agregar campos con valores válidos
+      if (value !== null && value !== undefined) {
+        formData.append(
+          key,
+          key === 'tipo'
+            ? JSON.stringify(value) // Array a string
+            : String(value) // Convertir explícitamente a string
+        );
+      }
     });
 
-    console.log('[CreateService] Enviando servicio con dirección:', serviceData.address);
+    console.log('[CreateService] Enviando servicio:', {
+      address: serviceData.address,
+      hasCoordinates: !!(serviceData.latitude && serviceData.longitude),
+      latitude: serviceData.latitude,
+      longitude: serviceData.longitude,
+    });
 
     // 3. Enviar petición
     const response = await api.post('/service/post', formData, {
@@ -58,7 +69,7 @@ export async function createService(
     });
 
     if (response.status === 201 && response.data) {
-      console.log('[CreateService]  Servicio creado exitosamente');
+      console.log('[CreateService] Servicio creado exitosamente');
       
       // Mostrar información de geocodificación si está disponible
       if (response.data.geocodeInfo) {
@@ -175,19 +186,26 @@ export async function updateService(service_id: string, serviceData: Record<stri
     const existingUrls = serviceData.photos.filter((img: string) => !img.startsWith("file://"));
     formData.append("existingPhotos", JSON.stringify(existingUrls));
 
-    // Agregar otros campos (incluyendo 'tipo')
+    // Agregar otros campos (incluyendo 'tipo', 'latitude', 'longitude')
     Object.keys(serviceData).forEach((key) => {
       if (key !== 'photos') { // Ya procesamos photos arriba
-        formData.append(
-          key,
-          key === "tipo"
-            ? JSON.stringify(serviceData[key])
-            : String(serviceData[key])
-        );
+        const value = serviceData[key];
+        
+        // Solo agregar si tiene valor
+        if (value !== null && value !== undefined) {
+          formData.append(
+            key,
+            key === "tipo"
+              ? JSON.stringify(value)
+              : String(value)
+          );
+        }
       }
     });
 
-    console.log('[UpdateService] Actualizando servicio:', service_id);
+    console.log('[UpdateService] Actualizando servicio:', service_id, {
+      hasCoordinates: !!(serviceData.latitude && serviceData.longitude),
+    });
 
     // llamada al backend
     const response = await api.patch(`/service/patch/${service_id}`, formData, {
@@ -198,7 +216,7 @@ export async function updateService(service_id: string, serviceData: Record<stri
     });
 
     if (response.status === 200) {
-      console.log('[UpdateService] ✅ Servicio actualizado exitosamente');
+      console.log('[UpdateService] Servicio actualizado exitosamente');
       return response.data.service;
     }
 
@@ -246,7 +264,7 @@ export async function deleteService(service_id: string) {
 
     // Si la API responde éxito (200 o 204), retornamos true
     if (response.status === 200 || response.status === 204) {
-      console.log('[DeleteService] ✅ Servicio eliminado exitosamente');
+      console.log('[DeleteService] Servicio eliminado exitosamente');
       return true;
     }
 

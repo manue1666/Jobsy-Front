@@ -1,6 +1,7 @@
 import { ThemeContext } from '@/context/themeContext';
 import React, { useContext } from 'react';
-import { SafeAreaView, StatusBar, ImageBackground, View, Platform } from 'react-native';
+import { StatusBar, View, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; // ← CAMBIAR IMPORT
 
 interface ScreenContainerProps {
   children: React.ReactNode;
@@ -25,10 +26,12 @@ export function ScreenContainer({
     contentClassName
   ].filter(Boolean).join(' ');
 
-  const androidPadding = Platform.OS === 'android' ? { paddingTop: StatusBar.currentHeight } : {};
-
+  
   return (
-	<SafeAreaView className={containerClasses} style={androidSafeArea ? androidPadding : {}}>
+    <SafeAreaView 
+      className={containerClasses}
+      edges={androidSafeArea ? ['top', 'left', 'right'] : []} // ← USAR edges en lugar de paddingTop
+    >
       <StatusBar
         barStyle={isDark ? 'light-content' : 'dark-content'}
         backgroundColor={isDark ? '#111827' : '#ffffff'}

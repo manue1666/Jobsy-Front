@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext } from 'react';
-
+//DESUSO
 interface SearchRangeContextProps {
   searchRange: number;
   setSearchRange: (value: number) => void;

@@ -77,7 +77,10 @@ export default function ReportJobsyScreen() {
           headerTintColor: isDark ? "#ffffff" : "#000000",
         }}
       />
-      <ScrollView className="flex-1 px-6">
+      <ScrollView 
+        className="flex-1 px-6"
+        contentContainerStyle={{ paddingBottom: 100 }} // ← AGREGAR ESTO
+      >
         <FormCard title="Centro de Reportes" scrollable={false}>
           <View className="mb-6">
             <AppLogo variant="colored" size="medium" />

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Jobsy",
     "slug": "Jobsy",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "jobsy",
@@ -16,16 +16,17 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.marudehabanero.Jobsy",
-      "buildNumber": "2"
+      "buildNumber": "3"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": false,
+      "edgeToEdgeEnabled": true,
       "package": "com.marudehabanero.Jobsy",
-      "versionCode": 2
+      "versionCode": 3,
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "bundler": "metro",

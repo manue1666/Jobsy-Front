@@ -1,26 +1,28 @@
 import React, { useContext } from 'react';
 import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import { Pressable, Platform } from 'react-native';
 import Colors from '@/constants/Colors';
 import { TabBarIcon } from "@/components/authComponents/IconFontAwesome";
 import { ThemeContext } from '@/context/themeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { currentTheme } = useContext(ThemeContext);
   const isDark = currentTheme === "dark";
   const iconSize = 25;
   const themeColors = Colors[currentTheme as keyof typeof Colors];
+  const insets = useSafeAreaInsets(); // ← NUEVO
 
   return (
-
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
           backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
           borderTopColor: isDark ? '#374151' : '#E5E7EB',
-          height: 80,
-          paddingBottom: 20,
+          // Altura dinámica que incluye el safe area bottom
+          height: 60 + insets.bottom, // altura base + inset inferior
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 10, // respeta inset
           paddingTop: 10,
         },
         tabBarActiveTintColor: '#3B82F6',
@@ -70,7 +72,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="gear" color={color} size={iconSize} />
         }}
       />
-
     </Tabs>
   );
 }

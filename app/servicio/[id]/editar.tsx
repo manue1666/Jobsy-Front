@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react";
-import { View, Alert, Text } from "react-native";
+import { View, Alert, Text, ScrollView } from "react-native";
 import { ScreenContainer } from "@/components/ScreenContainer";
 import { FormCard } from "@/components/authComponents/FormCard";
 import { FormInput } from "@/components/authComponents/FormInput";
@@ -19,6 +19,7 @@ interface ServiceData {
   description: string;
   category: string;
   address: string;
+  coordinates: { latitude: number | null; longitude: number | null }; 
   phone: string;
   email: string;
   serviceTypes: string[];
@@ -31,7 +32,7 @@ interface FormErrors {
   phone?: string;
   email?: string;
   category?: string;
-} // Eliminado serviceTypes de los errores
+}
 
 export default function PublicarScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -42,9 +43,10 @@ export default function PublicarScreen() {
     description: "",
     category: "",
     address: "",
+    coordinates: { latitude: null, longitude: null },
     phone: "",
     email: "",
-    serviceTypes: [], // Ahora es opcional
+    serviceTypes: [],
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const { okAlert, errAlert } = useAlert();
@@ -62,12 +64,13 @@ export default function PublicarScreen() {
 
     if (!serviceData.address.trim()) {
       newErrors.address = "La dirección es requerida";
+    } else if (!serviceData.coordinates.latitude || !serviceData.coordinates.longitude) {
+      newErrors.address = "Por favor, verifica la dirección o usa GPS para confirmar la ubicación";
     }
 
     if (!serviceData.phone.trim()) {
       newErrors.phone = "El teléfono es requerido";
     } else {
-      // Solo números, entre 10 y 15 dígitos
       const digits = serviceData.phone.replace(/\D/g, "");
       if (digits.length < 10 || digits.length > 15) {
         newErrors.phone = "Ingresa un teléfono válido";
@@ -84,8 +87,6 @@ export default function PublicarScreen() {
       newErrors.category = "Selecciona una categoría";
     }
 
-    // Eliminada la validación de serviceTypes
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -101,13 +102,14 @@ export default function PublicarScreen() {
         tipo: serviceData.serviceTypes,
         category: serviceData.category,
         address: serviceData.address,
+        latitude: serviceData.coordinates.latitude,
+        longitude: serviceData.coordinates.longitude,
         photos: serviceData.images,
         phone: serviceData.phone,
         email: serviceData.email,
       });
 
       okAlert("Éxito", "Servicio actualizado correctamente");
-      console.log(updated);
       router.back();
     } catch (err) {
       errAlert("Error", "No se pudo actualizar el servicio");
@@ -134,15 +136,16 @@ export default function PublicarScreen() {
         description: data.description,
         category: data.category,
         address: data.address,
+        coordinates: {
+          latitude: data.service_location?.coordinates?.[1] || null,
+          longitude: data.service_location?.coordinates?.[0] || null,
+        },
         phone: data.phone,
         email: data.email,
         serviceTypes: data.tipo,
       });
-      return data;
     } catch (err: any) {
       errAlert("Error", err.message || "No se pudo cargar el servicio");
-      console.log(err);
-      return null;
     } finally {
       setIsLoading(false);
     }
@@ -150,7 +153,6 @@ export default function PublicarScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      // Reseteo de todos los estados
       setIsLoading(false);
       getServiceDetails();
       setErrors({});
@@ -159,15 +161,22 @@ export default function PublicarScreen() {
 
   return (
     <ScreenContainer androidSafeArea={false}>
-      <View className="flex-1 px-4 py-6">
-        <FormCard title="Editar detalles del Servicio" scrollable>
-          {/* Images Section - Ahora opcional */}
+      <ScrollView 
+        className="flex-1 px-4 py-6"
+        contentContainerStyle={{ paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <FormCard title="Editar detalles del Servicio" scrollable={false}>
+          {/* Images Section */}
           <View className="mb-6">
             <Text className="text-sm text-gray-500 mb-2">Fotos (opcional)</Text>
             <ImageUpload
               maxImages={5}
               initialImages={serviceData.images}
-              onImagesChange={(images) => { updateServiceData("images", images); console.log(images) }}
+              onImagesChange={(images) => { 
+                updateServiceData("images", images); 
+                console.log(images) 
+              }}
             />
           </View>
 
@@ -210,16 +219,24 @@ export default function PublicarScreen() {
           {/* Address */}
           <LocationInput
             value={serviceData.address}
+            coordinates={serviceData.coordinates}
             onChangeText={(text) => updateServiceData("address", text)}
             onLocationSelect={(location) => {
-              updateServiceData("address", location.address);
-              console.log("Location selected:", location);
+              setServiceData(prev => ({
+                ...prev,
+                address: location.address,
+                coordinates: {
+                  latitude: location.latitude,
+                  longitude: location.longitude,
+                }
+              }));
+              if (errors.address) {
+                setErrors(prev => ({ ...prev, address: undefined }));
+              }
             }}
           />
           {errors.address && (
-            <View className="-mt-4 mb-4">
-              <Text className="text-red-500 text-xs">{errors.address}</Text>
-            </View>
+            <Text className="text-red-500 text-sm mt-1">{errors.address}</Text>
           )}
 
           {/* Phone */}
@@ -246,7 +263,7 @@ export default function PublicarScreen() {
             autoCapitalize="none"
           />
 
-          {/* Service Types - Ahora opcional */}
+          {/* Service Types */}
           <View className="mb-6">
             <Text className="text-sm text-gray-500 mb-2">
               Tipo de servicio (opcional)
@@ -269,7 +286,7 @@ export default function PublicarScreen() {
             />
           </View>
         </FormCard>
-      </View>
+      </ScrollView>
     </ScreenContainer>
   );
 }
